@@ -1,0 +1,6 @@
+V34 — GEOLOCALIZAÇÃO INTELIGENTE (GRATUITA)
+Publique os arquivos da pasta CENTRAL_OPERACIONAL na mesma hospedagem HTTPS da V33.
+O Worker murb-maps-resolver continua inalterado.
+No menu Geolocalização > Mapa, selecione uma programação, pesquise endereço/rua/bairro, selecione um resultado, confira o marcador (arraste para ajustar) e clique Confirmar e salvar localização.
+A pesquisa usa Nominatim (OpenStreetMap) sob demanda, sem autocomplete e sem chave paga; requer internet e está sujeita a disponibilidade e política de uso do serviço público. Não garante posição exata de imóveis ou estabelecimentos. O link Google Maps original é preservado.
+O armazenamento de pontos continua local no navegador, como na V33.

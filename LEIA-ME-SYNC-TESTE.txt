@@ -1,0 +1,14 @@
+MURB SINCRONIZAÇÃO V6.22.4 — TESTE CONTROLADO
+
+1. Publicar cada ZIP no respectivo projeto, extraindo a pasta raiz.
+2. Aplicar o SQL revisado em ambiente de teste e cadastrar o UID real do administrador.
+3. Entrar no Supabase em ambos os sistemas com suas contas corretas.
+4. No Administrativo selecionar a base individual de um encarregado cujo UID esteja cadastrado.
+5. Editar SOMENTE nome, função ou equipe de funcionário fictício já existente.
+6. Conferir mensagem de envio para fila. Abrir Operacional e aguardar consulta (15 segundos).
+7. Verificar a função no Operacional e retorno do backup Johnson no Administrativo.
+
+LIMITAÇÕES: não testado contra banco real. Nenhum envio sem SQL e UID autorizado.
+Edição local no Administrativo pode permanecer mesmo que o envio falhe; verifique o status.
+Não usar funcionários reais. Outras alterações cadastrais continuam locais nesta etapa.
+Não aplicar SQL em produção sem backup e revisão.
