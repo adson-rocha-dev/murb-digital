@@ -5848,7 +5848,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
       <button type="button" class="geo-mode-button" id="murbGeoTabManual" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="8" r="1.5"/><path d="m4 18 6-6 4 4 3-3 4 5"/></svg><strong>Foto manual</strong><small>CEP, rua e bairro</small></button>
       <button type="button" class="geo-mode-button" id="murbGeoTabLocations" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18M8 3v18"/></svg><strong>Localizações das programações</strong><small>Marcar equipes no mapa</small></button>
     </div>
-      <p class="geo-muted" id="murbGeoProgramHint" hidden>As programações são lidas do painel operacional. Selecione uma para localizar a equipe no mapa original.</p>
+      <p class="geo-muted" id="murbGeoProgramHint" hidden>Somente as programações de hoje (horário de Manaus). Selecione uma para localizar a equipe no mapa original.</p>
     <div id="murbGeoProgramLocationsMode" hidden class="geo-program-panel">
       <label for="murbGeoLocationProgram">Programação / equipe</label>
       <select id="murbGeoLocationProgram"></select>
@@ -6037,7 +6037,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
    var m=window.L.marker([Number(r.lat),Number(r.lon)],{icon:pin}).addTo(markers);m.bindPopup(g.items.length===1?popup(r):groupPopup(g));var label=document.createElement('span');safeText(label,g.names+' · '+(g.state==='done'?'Serviço concluído':murbServiceLabel(g.state)));m.bindTooltip(label,{permanent:true,direction:'top'});g.items.forEach(x=>markerById.set(String(x.id),m));
   });
  }
- window.murbRefreshServiceMap=function(){freezeCompleted();if(panel.classList.contains('murb-geo-visible'))draw();};
+ window.murbRefreshServiceMap=function(){freezeCompleted();if(panel.classList.contains('murb-geo-visible')){refreshProgramSelect();draw();}};
  function focus(r){
   if(!map){note('O mapa ainda está carregando.');return}
   if(r.active===false){note('Este ponto foi removido do mapa.');return}
@@ -6067,7 +6067,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   draw();
  }
  async function open(){
-  panel.classList.add('murb-geo-visible');refreshTeams();load();render();syncGeo();
+  panel.classList.add('murb-geo-visible');refreshProgramSelect();refreshTeams();load();render();syncGeo();
   try{
    await leaflet();
    if(!map){
@@ -6344,17 +6344,28 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
  }
 
 
- var selectedProgram=null,programPreview=null,setGeoMode;
+ var selectedProgram=null,selectedProgramKey='',selectedProgramSignature='',programPreview=null,setGeoMode;
  function programs(){try{return typeof data!=='undefined'&&data&&Array.isArray(data.dailySchedule)?data.dailySchedule:[]}catch(e){return []}}
- function programTeam(p){var t=teams().find(function(t){return String(t.id)===String(p.teamId||p.equipeId||'')});return t?teamName(t):String(p.team||p.equipe||p.sigla||'Equipe não identificada')}
+ function programTeam(p){var t=teams().find(function(t){return String(t.id)===String(p.teamId||p.equipeId||'')});return t?teamName(t):String(p.teamName||p.team||p.equipe||p.sigla||'Equipe não identificada')}
  function programAddress(p){return [p.local||p.rua||p.street,p.bairro||p.neighborhood].filter(Boolean).join(', ')}
- function refreshProgramSelect(){var sel=el('murbGeoLocationProgram'),old=sel.value;sel.replaceChildren();var first=document.createElement('option');first.value='';first.textContent='Selecione uma programação';sel.appendChild(first);
-  programs().forEach(function(p,i){var o=document.createElement('option');o.value=String(i);o.textContent=[programTeam(p),p.date||p.data,programAddress(p)].filter(Boolean).join(' • ');sel.appendChild(o)});sel.value=old;
+ function geoToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Manaus',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).filter(x=>['year','month','day'].includes(x.type)).reduce((o,x)=>(o[x.type]=x.value,o),{});}
+ function geoTodayKey(){var d=geoToday();return d.year+'-'+d.month+'-'+d.day}
+ function geoProgramKey(p){return JSON.stringify([String(p.id||''),serviceDate(p.date||p.data),String(p.teamId||p.teamName||''),programAddress(p),String(p.jointId||'')])}
+ function geoProgramChoices(){var groups=new Map();programs().filter(p=>serviceDate(p.date||p.data)===geoTodayKey()).forEach(p=>{var key=p.jointId?JSON.stringify([p.jointId,p.date,p.local,p.bairro]):geoProgramKey(p);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)});return Array.from(groups.values()).map(rows=>({p:rows[0],key:geoProgramKey(rows[0]),members:rows.map(geoProgramKey).sort(),label:[rows.map(programTeam).join(' + '),programAddress(rows[0])].filter(Boolean).join(' • ')}))}
+ var geoChoiceSignature='';
+ function choiceSignature(choice){return JSON.stringify([choice.key,choice.label,choice.members])}
+ function refreshProgramSelect(){
+  var sel=el('murbGeoLocationProgram'),choices=geoProgramChoices(),sig=JSON.stringify(choices.map(choiceSignature));
+  if(sig!==geoChoiceSignature||!sel.options.length){geoChoiceSignature=sig;sel.replaceChildren();var first=document.createElement('option');first.value='';first.textContent=choices.length?'Selecione uma programação de hoje':'Nenhuma programação de hoje';sel.appendChild(first);choices.forEach(x=>{var o=document.createElement('option');o.value=x.key;o.textContent=x.label;sel.appendChild(o)})}
+  var current=choices.find(x=>x.key===selectedProgramKey);
+  if(!current&&selectedProgram){current=choices.find(x=>String(x.p.id)===String(selectedProgram.id));}
+  if(current){if(choiceSignature(current)!==selectedProgramSignature){clearProgramPreview();selectProgram(current.p);el('murbGeoLocationStatus').textContent='Programação atualizada. Confira o endereço e busque novamente a posição.'}else{selectedProgram=current.p;sel.value=current.key}}
+  else{if(selectedProgramKey){clearProgramPreview();el('murbGeoLocationAddress').value='';el('murbGeoLocationStatus').textContent='Selecione uma programação de hoje.'}selectedProgram=null;selectedProgramKey='';selectedProgramSignature='';sel.value=''}
  }
- function selectProgram(p){selectedProgram=p;var index=programs().indexOf(p);el('murbGeoLocationProgram').value=index<0?'':String(index);el('murbGeoLocationAddress').value=programAddress(p);el('murbGeoLocationStatus').textContent='Confira o endereço e busque a posição no mapa.';}
+ function selectProgram(p){selectedProgram=p;selectedProgramKey=geoProgramKey(p);var choice=geoProgramChoices().find(x=>x.key===selectedProgramKey);selectedProgramSignature=choice?choiceSignature(choice):'';el('murbGeoLocationProgram').value=selectedProgramKey;el('murbGeoLocationAddress').value=programAddress(p);el('murbGeoLocationStatus').textContent='Confira o endereço e busque a posição no mapa.';}
  function clearProgramPreview(){if(programPreview&&map)map.removeLayer(programPreview);programPreview=null;el('murbGeoLocationConfirm').disabled=true}
  async function searchProgramLocation(){
-  var p=selectedProgram,address=el('murbGeoLocationAddress').value.trim();
+  refreshProgramSelect();var p=selectedProgram,requestSignature=selectedProgramSignature,address=el('murbGeoLocationAddress').value.trim();
   if(!p){el('murbGeoLocationStatus').textContent='Selecione uma programação.';return}
   if(!address){el('murbGeoLocationStatus').textContent='Informe rua e bairro.';return}
   if(!map){el('murbGeoLocationStatus').textContent='Aguarde o carregamento do mapa.';return}
@@ -6364,13 +6375,14 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
    var resp=await fetch(url,{headers:{Accept:'application/json'}});if(!resp.ok)throw Error('Serviço de endereços indisponível');
    var results=await resp.json();if(!results.length)throw Error('Endereço não encontrado. Informe rua e bairro mais completos.');
    var lat=Number(results[0].lat),lon=Number(results[0].lon);
+   refreshProgramSelect();if(!selectedProgram||selectedProgramSignature!==requestSignature||el('murbGeoLocationAddress').value.trim()!==address||serviceDate(p.date||p.data)!==geoTodayKey())return;
    programPreview=window.L.marker([lat,lon],{draggable:true}).addTo(map);map.setView([lat,lon],16);map.invalidateSize();
    el('murbGeoLocationConfirm').disabled=false;
    el('murbGeoLocationStatus').textContent='Posição aproximada. Arraste o marcador até o local correto e confirme.';
   }catch(e){el('murbGeoLocationStatus').textContent=e.message}
  }
  function confirmProgramLocation(){
-  if(!selectedProgram||!programPreview)return;
+  refreshProgramSelect();if(!selectedProgram||!programPreview)return;
   var coord=programPreview.getLatLng(),p=selectedProgram;var batch=p.jointId?programs().filter(x=>x.jointId===p.jointId&&x.date===p.date&&x.local===p.local&&x.bairro===p.bairro):[p];freezeCompleted();var focusPoint;batch.forEach(function(p){
   var r={id:'program-'+String(p.id||Date.now())+'-'+Date.now(),programId:String(p.id||''),teamId:String(p.teamId||p.equipeId||''),team:programTeam(p),fiscal:String(p.fiscal||p.responsavel||p.encarregado||''),street:String(p.local||p.rua||''),neighborhood:String(p.bairro||''),lat:coord.lat,lon:coord.lng,date:String(p.date||p.data||new Date().toLocaleDateString('pt-BR')),time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),source:'programacao',quality:'Localização confirmada manualmente',active:true};
   var prior=records.find(function(x){return x.source==='programacao'&&x.active!==false&&!x.completedAt&&String(x.programId)===r.programId&&r.programId&&sameServiceAddress(p,x)&&serviceDate(x.date)===serviceDate(r.date)});if(murbServiceState(p)==='done')r.completedAt=p.updatedAt||new Date().toISOString();
@@ -6408,7 +6420,8 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   el('murbGeoTabManual').onclick=function(){setGeoMode('manual')};
   el('murbGeoTabLocations').onclick=function(){setGeoMode('locations')};
   setGeoMode('gps');
-  el('murbGeoLocationProgram').addEventListener('change',function(){var p=programs()[Number(this.value)];if(this.value!==''&&p)selectProgram(p);else selectedProgram=null;clearProgramPreview()});
+  setInterval(function(){if(!document.hidden&&panel.classList.contains('murb-geo-visible')&&geoMode==='locations')refreshProgramSelect()},1000);
+  el('murbGeoLocationProgram').addEventListener('change',function(){var choice=geoProgramChoices().find(x=>x.key===this.value);if(choice)selectProgram(choice.p);else{selectedProgram=null;selectedProgramKey='';selectedProgramSignature='';el('murbGeoLocationAddress').value=''}clearProgramPreview()});
   el('murbGeoLocationSearch').onclick=searchProgramLocation;
   el('murbGeoLocationConfirm').onclick=confirmProgramLocation;
   new MutationObserver(function(){var count=el('murbGeoRecords').querySelectorAll('article').length;el('murbGeoHistoryCount').textContent=count+' registro'+(count===1?'':'s')}).observe(el('murbGeoRecords'),{childList:true});
