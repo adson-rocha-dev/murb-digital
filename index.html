@@ -1187,7 +1187,13 @@ body main.main > header.topbar #pageSub {color:#c9e0d9!important}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe,{once:true});else observe();
 })();
 </script>
-<style>.murb-service-control{margin:10px 0;display:grid;gap:6px;font-size:12px}.murb-service-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.murb-service-options button{min-width:0;white-space:normal;overflow-wrap:normal;padding:7px 3px;font-size:11px;line-height:1.2;border:1px solid var(--service-color);border-radius:7px;background:#fff;color:#334155;box-shadow:none}.murb-service-options button[aria-pressed=true]{background:var(--service-color);color:#172b36;font-weight:700}@media(max-width:520px){.murb-service-options{grid-template-columns:1fr}.murb-service-options button{min-height:32px}}</style>
+<style>
+.dp-card[data-service-status],.dp-dash-card[data-service-status]{border:2px solid var(--service-color)!important;box-shadow:0 0 8px color-mix(in srgb,var(--service-color) 19%,transparent);transition:border-color .2s,box-shadow .2s}
+.murb-service-control{margin:10px 0;min-width:0}
+.murb-service-control .murb-service-toggle{display:grid!important;grid-template-columns:30px minmax(0,1fr) 18px;align-items:center;gap:5px 9px;width:100%;min-width:0;min-height:52px;padding:8px 10px!important;border:1px solid #22c98b!important;border-radius:12px;background:transparent!important;color:#123c34!important;text-align:left;box-shadow:none!important;white-space:normal;line-height:1.25}
+.murb-service-toggle .service-orb{width:28px;height:28px;border:1px solid var(--service-color);border-radius:50%;display:grid;place-items:center}.service-orb:after{content:'';width:10px;height:10px;border-radius:50%;background:var(--service-color);box-shadow:0 0 7px var(--service-color)}
+.murb-service-toggle .service-copy{display:grid;gap:2px;min-width:0}.service-copy small{font-size:9px;letter-spacing:.06em;color:#70847e}.service-copy b{font-size:13px;overflow-wrap:normal}.service-repeat{color:#13856b;font-size:19px}.service-progress{grid-column:1/-1;display:flex;gap:4px}.service-progress i{flex:1;height:3px;border-radius:4px;background:#e6ecea}.service-progress i.on{background:var(--service-color)}
+</style>
 </head>
 <body>
 <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Abrir menu" onclick="toggleMobileMenu()">☰</button><div class="mobile-menu-scrim" id="mobileMenuScrim" onclick="closeMobileMenu()"></div><div class="layout">
@@ -3870,7 +3876,7 @@ function dpRender(){
  $('dpFilterTeam').innerHTML='<option value="">Todas as equipes</option>'+opts+'<option value="__external__">Equipes externas</option>'; $('dpFilterTeam').value=f;
  if(!$('dpDate').value)$('dpDate').value=today();dpTeamChange();
  const xs=dpFiltered();$('dpSummary').textContent=xs.length+' programação(ões) · '+new Set(xs.map(x=>x.isExternal?'externa:'+x.teamName+':'+x.encarregado:String(x.teamId))).size+' equipe(s)';
- $('dpCards').innerHTML=xs.length?xs.map(x=>'<article class="dp-card"><h3>'+esc(x.teamName)+'</h3><p><b>Data:</b> '+esc(murbDataBR(x.date))+'</p><p><b>Local:</b> '+esc(x.local)+'</p><p><b>Bairro:</b> '+esc(x.bairro)+'</p><p><b>Responsável:</b> '+esc(x.responsavel)+'</p><p><b>Ativos:</b> '+esc(x.activeCount)+'</p><p><b>Serviço:</b> '+esc(x.service)+'</p><p><b>Encarregado:</b> '+esc(x.encarregado)+'</p><p>'+esc(x.note)+'</p>'+murbServiceControls(x)+'<button class="btn" data-dp-copy="'+esc(x.id)+'">📋 Copiar para WhatsApp</button> <button class="btn" data-dp-edit="'+esc(x.id)+'">Editar</button> <button class="btn" data-dp-delete="'+esc(x.id)+'">Excluir</button></article>').join(''):'<p class="sub">Nenhuma programação encontrada.</p>';
+ $('dpCards').innerHTML=xs.length?xs.map(x=>'<article class="dp-card"'+murbServiceCardAttrs(x)+'><h3>'+esc(x.teamName)+'</h3><p><b>Data:</b> '+esc(murbDataBR(x.date))+'</p><p><b>Local:</b> '+esc(x.local)+'</p><p><b>Bairro:</b> '+esc(x.bairro)+'</p><p><b>Responsável:</b> '+esc(x.responsavel)+'</p><p><b>Ativos:</b> '+esc(x.activeCount)+'</p><p><b>Serviço:</b> '+esc(x.service)+'</p><p><b>Encarregado:</b> '+esc(x.encarregado)+'</p><p>'+esc(x.note)+'</p>'+murbServiceControls(x)+'<button class="btn" data-dp-copy="'+esc(x.id)+'">📋 Copiar para WhatsApp</button> <button class="btn" data-dp-edit="'+esc(x.id)+'">Editar</button> <button class="btn" data-dp-delete="'+esc(x.id)+'">Excluir</button></article>').join(''):'<p class="sub">Nenhuma programação encontrada.</p>';
  $('dpCards').querySelectorAll('[data-dp-copy]').forEach(b=>b.onclick=()=>dpCopyWhatsApp(b.dataset.dpCopy));
  $('dpCards').querySelectorAll('[data-dp-edit]').forEach(b=>b.onclick=()=>dpEdit(b.dataset.dpEdit));
  $('dpCards').querySelectorAll('[data-dp-delete]').forEach(b=>b.onclick=()=>dpDelete(b.dataset.dpDelete));
@@ -3921,7 +3927,7 @@ $('dailyProgramForm').addEventListener('submit',e=>{
  if(external&&(!$('dpExternalName').value.trim()||!$('dpExternalOwner').value.trim()||!$('dpLead').value.trim()||!Number.isInteger(active)||active<0)){toast('Informe equipe externa, encarregado, fiscal e quantidade válida.');return}
  const x={id:id||uid(),date:$('dpDate').value,isExternal:external,teamId:external?'':t.id,teamName:external?$('dpExternalName').value.trim():t.name,responsavel:external?$('dpLead').value.trim():t.lead||'',activeCount:external?active:data.employees.filter(e=>String(e.teamId)===String(t.id)&&e.status==='Ativo').length,local:$('dpLocal').value.trim(),bairro:$('dpBairro').value.trim(),service:$('dpService').value.trim(),note:$('dpNote').value.trim(),encarregado:external?$('dpExternalOwner').value.trim():murbPrincipalName(),updatedAt:new Date().toISOString()};
  if(!x.date||!x.local||!x.bairro){toast('Preencha data, local e bairro.');return}
- if(old){if(old.date!==x.date||String(old.teamId)!==String(x.teamId)||old.teamName!==x.teamName)x.serviceState="pending";Object.assign(old,x);}else items.push(x);
+ if(old){if(old.date!==x.date||String(old.teamId)!==String(x.teamId)||old.teamName!==x.teamName){x.serviceState="pending";x.serviceDirection="forward";}Object.assign(old,x);}else items.push(x);
  if(save()){dpReset();dpRender();if(typeof dashProgramRender==='function')dashProgramRender();toast('Programação salva e incluída no próximo Johnson.')}
 });
 </script>
@@ -3963,8 +3969,10 @@ async function murbCopyDashProgram(rowId){
 function murbServiceState(row){return ['pending','running','done'].includes(row?.serviceState)?row.serviceState:'pending';}
 function murbServiceLabel(state){return ({pending:'Não iniciado',running:'Em andamento',done:'Concluído'})[state]||'Não iniciado';}
 function murbServiceColor(state){return ({pending:'#94a3b8',running:'#eab308',done:'#16a34a'})[state]||'#94a3b8';}
-function murbServiceControls(row){const state=murbServiceState(row);return '<div class="murb-service-control"><strong>Status do serviço</strong><div class="murb-service-options">'+['pending','running','done'].map(k=>'<button type="button" data-service-row="'+esc(String(row.id))+'" data-service-state="'+k+'" aria-pressed="'+(state===k)+'" style="--service-color:'+murbServiceColor(k)+'" onclick="murbSetServiceState(this.dataset.serviceRow,this.dataset.serviceState)">'+murbServiceLabel(k)+'</button>').join('')+'</div></div>';}
-function murbSetServiceState(id,state){if(!['pending','running','done'].includes(state))return;const row=(data.dailySchedule||[]).find(x=>String(x.id)===String(id));if(!row)return;const old=row.serviceState,oldTime=row.updatedAt;row.serviceState=state;row.updatedAt=new Date().toISOString();if(!save()){row.serviceState=old;row.updatedAt=oldTime;return;}toast('Status do serviço: '+murbServiceLabel(state));}
+function murbServiceCardAttrs(row){const state=murbServiceState(row);return ' data-service-status="'+state+'" style="--service-color:'+murbServiceColor(state)+'"';}
+function murbServiceControls(row){const state=murbServiceState(row),step=['pending','running','done'].indexOf(state);return '<div class="murb-service-control"><button type="button" class="murb-service-toggle" data-service-row="'+esc(String(row.id))+'" style="--service-color:'+murbServiceColor(state)+'" onclick="murbCycleService(this.dataset.serviceRow)" aria-label="Execução do serviço: '+murbServiceLabel(state)+'. Alterar status"><span class="service-orb" aria-hidden="true"></span><span class="service-copy"><small>EXECUÇÃO DO SERVIÇO</small><b>'+murbServiceLabel(state)+'</b></span><span class="service-repeat" aria-hidden="true">↻</span><span class="service-progress" aria-hidden="true">'+[0,1,2].map(i=>'<i class="'+(i<=step?'on':'')+'"></i>').join('')+'</span></button></div>';}
+function murbCycleService(id){const row=(data.dailySchedule||[]).find(x=>String(x.id)===String(id));if(!row)return;const state=murbServiceState(row);const next=state==='pending'?'running':state==='done'?'running':row.serviceDirection==='back'?'pending':'done';murbSetServiceState(id,next,state==='done'||next==='done'?'back':next==='pending'?'forward':row.serviceDirection||'forward');}
+function murbSetServiceState(id,state,direction){if(!['pending','running','done'].includes(state))return;const row=(data.dailySchedule||[]).find(x=>String(x.id)===String(id));if(!row)return;const old=row.serviceState,oldTime=row.updatedAt,oldDirection=row.serviceDirection;row.serviceState=state;row.serviceDirection=direction||(state==='done'?'back':'forward');row.updatedAt=new Date().toISOString();if(!save()){row.serviceState=old;row.updatedAt=oldTime;row.serviceDirection=oldDirection;return;}toast('Status do serviço: '+murbServiceLabel(state));}
 function dashProgramRender(){
  const host=$('dashProgramCards');if(!host)return;
  const rows=dashProgramRows(),date=$('dashProgramDate').value;
@@ -3992,7 +4000,7 @@ function dashProgramRender(){
   '<div class="dp-kpi"><span>Faltas registradas</span><strong>'+totalFaltas+'</strong></div>'+
   '<div class="dp-kpi"><span>Bairros atendidos</span><strong>'+new Set(items.map(x=>x.bairro).filter(Boolean)).size+'</strong></div></div>';
  host.innerHTML=items.length?items.map(x=>
-  '<article class="dp-dash-card">'+
+  '<article class="dp-dash-card"'+murbServiceCardAttrs(x)+'>'+
    '<div class="dp-dash-head"><span class="dp-dash-tag">EQUIPE</span><span class="dp-dash-date">'+esc(murbDataBR(x.date))+'</span></div>'+
    '<h3>'+esc(x.teamName)+'</h3>'+
    '<div class="dp-dash-lead">Fiscal / responsável: <strong>'+esc(x.responsavel)+'</strong></div>'+
