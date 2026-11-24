@@ -1,9 +1,0 @@
-MURB X Enterprise V20 — Central de Manutenção de Vias integrada à aba OPERAÇÃO.
-
-Base: MURBX_ENTERPRISE_V19_NOME_APLICATIVO(2).zip. Central: V36.
-
-Publique o conteúdo da pasta OPERACIONAL, mantendo a subpasta CENTRAL_OPERACIONAL no mesmo domínio. O botão novo abre a Central no próprio MURB X e Voltar à central retorna ao Touch Command Center.
-
-Esta etapa integra a navegação e os arquivos; NÃO implementa sincronização bidirecional das programações entre dispositivos. Isso requer integração de dados com Supabase separada.
-
-Preservados os arquivos originais de V19 e V36; apenas index.html do Enterprise foi alterado para adicionar acesso e container.
