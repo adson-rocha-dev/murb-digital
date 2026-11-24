@@ -23,7 +23,7 @@ function ensureCell(doc,ref){let c=cell(doc,ref);if(c)return c;
 function setCell(doc,ref,value){const c=ensureCell(doc,ref);while(c.firstChild)c.removeChild(c.firstChild);c.setAttribute('t','inlineStr');const is=doc.createElementNS(NS,'is'),t=doc.createElementNS(NS,'t');t.setAttribute('xml:space','preserve');t.textContent=String(value??'');is.appendChild(t);c.appendChild(is);}
 function readGroups(){
  if(typeof data==='undefined'||!Array.isArray(data.teams)||!Array.isArray(data.employees))throw Error('Cadastro de funcionários indisponível');
- const people=data.employees.filter(e=>!['desligado','demitido','inativo'].includes(normalized(e.status).toLowerCase()));
+ const people=data.employees.filter(e=>normalized(e.status).toLowerCase()==='ativo');
  return data.teams.map(t=>({name:String(t.name||'').trim(),lead:String(t.lead||t.fiscal||t.supervisor||'Não informado'),people:people.filter(e=>String(e.teamId)===String(t.id)).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR')).map(e=>({name:String(e.name||''),role:String(e.role||'')}))})).filter(g=>g.name);
 }
 function fill(doc,group,start){
