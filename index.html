@@ -1187,6 +1187,7 @@ body main.main > header.topbar #pageSub {color:#c9e0d9!important}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe,{once:true});else observe();
 })();
 </script>
+<style>.murb-service-control{margin:10px 0;display:grid;gap:6px;font-size:12px}.murb-service-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.murb-service-options button{min-width:0;white-space:normal;overflow-wrap:normal;padding:7px 3px;font-size:11px;line-height:1.2;border:1px solid var(--service-color);border-radius:7px;background:#fff;color:#334155;box-shadow:none}.murb-service-options button[aria-pressed=true]{background:var(--service-color);color:#172b36;font-weight:700}@media(max-width:520px){.murb-service-options{grid-template-columns:1fr}.murb-service-options button{min-height:32px}}</style>
 </head>
 <body>
 <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Abrir menu" onclick="toggleMobileMenu()">☰</button><div class="mobile-menu-scrim" id="mobileMenuScrim" onclick="closeMobileMenu()"></div><div class="layout">
@@ -1664,7 +1665,7 @@ function murbImprimirArquivados(tipo){
 }
 function murbLimparArquivados(tipo){for(const suf of ['Busca','Dia','Mes','Ano']){const el=document.getElementById(tipo+suf);if(el)el.value=''}murbRenderArquivados(tipo)}
 
-function renderAll(){if(typeof murbLunchRender==='function')murbLunchRender();murbActivityRender();if(typeof dpRender==='function')dpRender();if(typeof murbOrdersRender==='function')murbOrdersRender();if(typeof murbMissionRender==='function')murbMissionRender();if(typeof murbRenderRecentTransfers==='function')murbRenderRecentTransfers();if(typeof dashProgramRender==='function')dashProgramRender();ensureModuleChartPanels();renderStats();renderTeamOptions();renderEmployees();murbRenderArquivados('afastados');murbRenderArquivados('sumidos');murbRenderArquivados('desligados');renderTeams();renderVacations();renderMoves();renderDashboard();renderAbsences();renderAbsenceOptions();renderMaterials();renderSacks();renderSectionCharts()}
+function renderAll(){if(typeof murbLunchRender==='function')murbLunchRender();murbActivityRender();if(typeof dpRender==='function')dpRender();if(typeof murbOrdersRender==='function')murbOrdersRender();if(typeof murbMissionRender==='function')murbMissionRender();if(typeof murbRenderRecentTransfers==='function')murbRenderRecentTransfers();if(typeof dashProgramRender==='function')dashProgramRender();ensureModuleChartPanels();renderStats();renderTeamOptions();renderEmployees();murbRenderArquivados('afastados');murbRenderArquivados('sumidos');murbRenderArquivados('desligados');renderTeams();renderVacations();renderMoves();renderDashboard();renderAbsences();renderAbsenceOptions();renderMaterials();renderSacks();renderSectionCharts();if(window.murbRefreshServiceMap)window.murbRefreshServiceMap()}
 function renderStats(){$('statTotal').textContent=data.employees.length;$('statActive').textContent=data.employees.filter(e=>e.status==='Ativo').length;$('statLeave').textContent=data.employees.filter(e=>e.status==='Afastado').length;$('statMissing').textContent=data.employees.filter(e=>e.status==='Sumido'||e.status==='Inativo').length;$('statTerminated').textContent=data.employees.filter(e=>e.status==='Desligado').length;$('statTeams').textContent=data.teams.length;$('statVacations').textContent=data.employees.filter(e=>e.status==='Férias').length;const excluded=['Férias','Afastado','Inativo','Sumido','Desligado'];const real=$('statReal');if(real)real.textContent=data.employees.filter(e=>!excluded.includes(e.status)).length}
 function renderTeamOptions(){const opts=data.teams.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');const f=$('filterTeam').value;$('filterTeam').innerHTML='<option value="">Todas as equipes</option>'+opts;if(data.teams.some(t=>t.id===f))$('filterTeam').value=f;const cur=$('empTeam').value;$('empTeam').innerHTML='<option value="">Selecione uma equipe</option>'+opts;if(data.teams.some(t=>t.id===cur))$('empTeam').value=cur}
 function printEmployeesByTeam(){
@@ -3869,7 +3870,7 @@ function dpRender(){
  $('dpFilterTeam').innerHTML='<option value="">Todas as equipes</option>'+opts+'<option value="__external__">Equipes externas</option>'; $('dpFilterTeam').value=f;
  if(!$('dpDate').value)$('dpDate').value=today();dpTeamChange();
  const xs=dpFiltered();$('dpSummary').textContent=xs.length+' programação(ões) · '+new Set(xs.map(x=>x.isExternal?'externa:'+x.teamName+':'+x.encarregado:String(x.teamId))).size+' equipe(s)';
- $('dpCards').innerHTML=xs.length?xs.map(x=>'<article class="dp-card"><h3>'+esc(x.teamName)+'</h3><p><b>Data:</b> '+esc(murbDataBR(x.date))+'</p><p><b>Local:</b> '+esc(x.local)+'</p><p><b>Bairro:</b> '+esc(x.bairro)+'</p><p><b>Responsável:</b> '+esc(x.responsavel)+'</p><p><b>Ativos:</b> '+esc(x.activeCount)+'</p><p><b>Serviço:</b> '+esc(x.service)+'</p><p><b>Encarregado:</b> '+esc(x.encarregado)+'</p><p>'+esc(x.note)+'</p><button class="btn" data-dp-copy="'+esc(x.id)+'">📋 Copiar para WhatsApp</button> <button class="btn" data-dp-edit="'+esc(x.id)+'">Editar</button> <button class="btn" data-dp-delete="'+esc(x.id)+'">Excluir</button></article>').join(''):'<p class="sub">Nenhuma programação encontrada.</p>';
+ $('dpCards').innerHTML=xs.length?xs.map(x=>'<article class="dp-card"><h3>'+esc(x.teamName)+'</h3><p><b>Data:</b> '+esc(murbDataBR(x.date))+'</p><p><b>Local:</b> '+esc(x.local)+'</p><p><b>Bairro:</b> '+esc(x.bairro)+'</p><p><b>Responsável:</b> '+esc(x.responsavel)+'</p><p><b>Ativos:</b> '+esc(x.activeCount)+'</p><p><b>Serviço:</b> '+esc(x.service)+'</p><p><b>Encarregado:</b> '+esc(x.encarregado)+'</p><p>'+esc(x.note)+'</p>'+murbServiceControls(x)+'<button class="btn" data-dp-copy="'+esc(x.id)+'">📋 Copiar para WhatsApp</button> <button class="btn" data-dp-edit="'+esc(x.id)+'">Editar</button> <button class="btn" data-dp-delete="'+esc(x.id)+'">Excluir</button></article>').join(''):'<p class="sub">Nenhuma programação encontrada.</p>';
  $('dpCards').querySelectorAll('[data-dp-copy]').forEach(b=>b.onclick=()=>dpCopyWhatsApp(b.dataset.dpCopy));
  $('dpCards').querySelectorAll('[data-dp-edit]').forEach(b=>b.onclick=()=>dpEdit(b.dataset.dpEdit));
  $('dpCards').querySelectorAll('[data-dp-delete]').forEach(b=>b.onclick=()=>dpDelete(b.dataset.dpDelete));
@@ -3920,7 +3921,7 @@ $('dailyProgramForm').addEventListener('submit',e=>{
  if(external&&(!$('dpExternalName').value.trim()||!$('dpExternalOwner').value.trim()||!$('dpLead').value.trim()||!Number.isInteger(active)||active<0)){toast('Informe equipe externa, encarregado, fiscal e quantidade válida.');return}
  const x={id:id||uid(),date:$('dpDate').value,isExternal:external,teamId:external?'':t.id,teamName:external?$('dpExternalName').value.trim():t.name,responsavel:external?$('dpLead').value.trim():t.lead||'',activeCount:external?active:data.employees.filter(e=>String(e.teamId)===String(t.id)&&e.status==='Ativo').length,local:$('dpLocal').value.trim(),bairro:$('dpBairro').value.trim(),service:$('dpService').value.trim(),note:$('dpNote').value.trim(),encarregado:external?$('dpExternalOwner').value.trim():murbPrincipalName(),updatedAt:new Date().toISOString()};
  if(!x.date||!x.local||!x.bairro){toast('Preencha data, local e bairro.');return}
- if(old)Object.assign(old,x);else items.push(x);
+ if(old){if(old.date!==x.date||String(old.teamId)!==String(x.teamId)||old.teamName!==x.teamName)x.serviceState="pending";Object.assign(old,x);}else items.push(x);
  if(save()){dpReset();dpRender();if(typeof dashProgramRender==='function')dashProgramRender();toast('Programação salva e incluída no próximo Johnson.')}
 });
 </script>
@@ -3959,6 +3960,11 @@ async function murbCopyDashProgram(rowId){
   }
  }catch(err){alert('Não foi possível copiar. Verifique a permissão da área de transferência no navegador.');}
 }
+function murbServiceState(row){return ['pending','running','done'].includes(row?.serviceState)?row.serviceState:'pending';}
+function murbServiceLabel(state){return ({pending:'Não iniciado',running:'Em andamento',done:'Concluído'})[state]||'Não iniciado';}
+function murbServiceColor(state){return ({pending:'#94a3b8',running:'#eab308',done:'#16a34a'})[state]||'#94a3b8';}
+function murbServiceControls(row){const state=murbServiceState(row);return '<div class="murb-service-control"><strong>Status do serviço</strong><div class="murb-service-options">'+['pending','running','done'].map(k=>'<button type="button" data-service-row="'+esc(String(row.id))+'" data-service-state="'+k+'" aria-pressed="'+(state===k)+'" style="--service-color:'+murbServiceColor(k)+'" onclick="murbSetServiceState(this.dataset.serviceRow,this.dataset.serviceState)">'+murbServiceLabel(k)+'</button>').join('')+'</div></div>';}
+function murbSetServiceState(id,state){if(!['pending','running','done'].includes(state))return;const row=(data.dailySchedule||[]).find(x=>String(x.id)===String(id));if(!row)return;const old=row.serviceState,oldTime=row.updatedAt;row.serviceState=state;row.updatedAt=new Date().toISOString();if(!save()){row.serviceState=old;row.updatedAt=oldTime;return;}toast('Status do serviço: '+murbServiceLabel(state));}
 function dashProgramRender(){
  const host=$('dashProgramCards');if(!host)return;
  const rows=dashProgramRows(),date=$('dashProgramDate').value;
@@ -3994,7 +4000,7 @@ function dashProgramRender(){
    '<div class="dp-dash-place"><span>🏘 Bairro</span><strong>'+esc(x.bairro||'Não informado')+'</strong></div>'+
    '<div class="dp-dash-bottom"><div class="dp-dash-active"><strong>'+x.active+'</strong><span>ATIVOS</span></div>'+
    '<div class="dp-dash-totals"><span>Efetivo: <b>'+x.total+'</b></span><span>Faltas: <b>'+x.absent+'</b></span></div></div>'+
-   (x.service?'<div class="dp-dash-service">'+esc(x.service)+'</div>':'')+
+   (x.service?'<div class="dp-dash-service">'+esc(x.service)+'</div>':'')+murbServiceControls(x)+
    (!x.isExternal?'<div class="murb-absence-actions"><button type="button" onclick="murbDashAbsenceOpen('+JSON.stringify(String(x.id)).replace(/"/g,'&quot;')+')">Equipe</button><button type="button" onclick="murbDashAbsenceZero('+JSON.stringify(String(x.id)).replace(/"/g,'&quot;')+')">Zero faltas</button></div>':'')+
    '<div class="murb-program-actions"><button type="button" class="murb-program-edit" onclick="murbDashProgramOpen('+JSON.stringify(String(x.id)).replace(/"/g,'&quot;')+')">▦ Programações</button><button type="button" class="murb-copy-program" title="Copiar programação desta equipe" aria-label="Copiar programação desta equipe" onclick="murbCopyDashProgram('+JSON.stringify(String(x.id)).replace(/"/g,'&quot;')+')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button></div>'+
   '</article>'
@@ -4068,7 +4074,7 @@ function murbDashProgramSave(){
  if(!date||!local||!bairro){toast('Preencha data, local e bairro.');return;}
  const items=dpItems();let existing=items.find(x=>x.date===date&&(row.isExternal?String(x.id)===String(row.id):!x.isExternal&&String(x.teamId)===String(row.teamId)));
  if(existing){existing.local=local;existing.bairro=bairro;existing.updatedAt=new Date().toISOString();}
- else{const team=data.teams.find(t=>String(t.id)===String(row.teamId));items.push({...row,id:uid(),date,local,bairro,teamName:team?.name||row.teamName,responsavel:team?.lead||row.responsavel,activeCount:row.activeCount||row.total||0,updatedAt:new Date().toISOString()});}
+ else{const team=data.teams.find(t=>String(t.id)===String(row.teamId));items.push({...row,id:uid(),date,local,bairro,serviceState:"pending",teamName:team?.name||row.teamName,responsavel:team?.lead||row.responsavel,activeCount:row.activeCount||row.total||0,updatedAt:new Date().toISOString()});}
  if(save()){murbDashProgramClose();if(typeof dpRender==='function')dpRender();dashProgramRender();toast('Programação salva no menu Programações.');}
 }
 function dashProgramToday(){$('dashProgramDate').value=today();dashProgramRender()}
@@ -5807,7 +5813,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
  <div class="geo-shell">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><h2 style="margin:0">⌖ Central de Geolocalização</h2><p class="geo-muted">MURB X Enterprise • Localizações informadas por fotografia</p></div><button type="button" id="murbGeoClose">✕ Voltar à central</button></div>
   <div class="geo-grid">
-   <div class="geo-card"><h3>Mapa operacional ampliado</h3><div id="murbGeoMap" role="region" aria-label="Mapa interativo das equipes"></div><p class="geo-muted">Toque no ponto verde para ver equipe, fiscal, endereço e fotografia. A posição é aproximada quando obtida por CEP ou endereço.</p></div>
+   <div class="geo-card"><h3>Mapa operacional ampliado</h3><div id="murbGeoMap" role="region" aria-label="Mapa interativo das equipes"></div><p class="geo-muted"><span style="color:#64748b">● Não iniciado</span> · <span style="color:#a16207">● Em andamento</span> · <span style="color:#15803d">● Concluído</span><br>Toque no ponto para ver equipe, fiscal, endereço e fotografia. A posição é aproximada quando obtida por CEP ou endereço.</p></div>
    <div class="geo-card geo-form-card"><h3>Adicionar localização</h3>
     <p class="geo-muted" style="margin-top:-5px">Escolha como deseja registrar o serviço.</p>
     <div class="geo-mode-switch" role="group" aria-label="Forma de localização">
@@ -5987,10 +5993,12 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   return window.murbGeoLeafletPromise;
  }
  function safeText(node,value){node.textContent=String(value||'')}
+ function serviceDate(v){var t=String(v||'').trim(),m=t.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?m[3]+'-'+m[2]+'-'+m[1]:t.slice(0,10)}
+ function pointService(r){var rows=programs().filter(function(p){return serviceDate(p.date)===serviceDate(r.date)&&(r.teamId?String(p.teamId)===String(r.teamId):!p.teamId&&norm(p.teamName)===norm(r.team))});var exact=rows.find(function(p){return r.programId&&String(p.id)===String(r.programId)});if(!exact)exact=rows.find(function(p){return norm(p.local)===norm(r.street)&&norm(p.bairro)===norm(r.neighborhood)});return murbServiceState(exact||(rows.length===1?rows[0]:null))}
  function popup(r){
   var box=document.createElement('div');box.className='geo-popup';
   var title=document.createElement('strong');safeText(title,r.team||'Equipe não informada');box.appendChild(title);
-  var rows=['Fiscal: '+(r.fiscal||'Não informado'),[r.street,r.neighborhood,r.zip].filter(Boolean).join(' • '),[r.date,r.time].filter(Boolean).join(' '),r.source==='gps'?'GPS • precisão estimada '+Math.round(r.accuracy||0)+' m':(r.source==='coordenadas-manuais'?'Coordenadas informadas manualmente':'')];
+  var rows=['Status: '+murbServiceLabel(pointService(r)),'Fiscal: '+(r.fiscal||'Não informado'),[r.street,r.neighborhood,r.zip].filter(Boolean).join(' • '),[r.date,r.time].filter(Boolean).join(' '),r.source==='gps'?'GPS • precisão estimada '+Math.round(r.accuracy||0)+' m':(r.source==='coordenadas-manuais'?'Coordenadas informadas manualmente':'')];
   rows.forEach(function(v){if(v){var p=document.createElement('div');safeText(p,v);box.appendChild(p)}});
   if(r.photo){var img=document.createElement('img');img.src=r.photo;img.alt='Fotografia do registro';img.title='Toque para ampliar a fotografia';img.addEventListener('click',function(){var overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#000e;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out';var large=document.createElement('img');large.src=r.photo;large.alt='Fotografia ampliada';large.style.cssText='max-width:96vw;max-height:92vh;object-fit:contain';overlay.appendChild(large);overlay.addEventListener('click',function(){overlay.remove()});document.body.appendChild(overlay)});box.appendChild(img)}
   return box;
@@ -5999,11 +6007,12 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   if(!map||!markers)return;
   markers.clearLayers();markerById.clear();
   records.filter(function(r){return r.active!==false&&Number.isFinite(Number(r.lat))&&Number.isFinite(Number(r.lon))}).forEach(function(r){
-   var pin=window.L.divIcon({className:'',html:'<div class="geo-pin" style="width:17px;height:17px"></div>',iconSize:[20,20],iconAnchor:[10,10]});
+   var pin=window.L.divIcon({className:'',html:'<div class="geo-pin" style="width:17px;height:17px;background:'+murbServiceColor(pointService(r))+';box-shadow:0 0 0 2px '+murbServiceColor(pointService(r))+',0 3px 8px #0004"></div>',iconSize:[20,20],iconAnchor:[10,10]});
    var m=window.L.marker([Number(r.lat),Number(r.lon)],{icon:pin}).addTo(markers);
    m.bindPopup(popup(r));markerById.set(String(r.id),m);
   });
  }
+ window.murbRefreshServiceMap=function(){if(panel.classList.contains('murb-geo-visible'))draw();};
  function focus(r){
   if(!map){note('O mapa ainda está carregando.');return}
   if(r.active===false){note('Este ponto foi removido do mapa. Use Restaurar.');return}
@@ -6335,7 +6344,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
  function confirmProgramLocation(){
   if(!selectedProgram||!programPreview)return;
   var coord=programPreview.getLatLng(),p=selectedProgram;
-  var r={id:'program-'+String(p.id||Date.now())+'-'+Date.now(),teamId:String(p.teamId||p.equipeId||''),team:programTeam(p),fiscal:String(p.fiscal||p.responsavel||p.encarregado||''),street:String(p.local||p.rua||''),neighborhood:String(p.bairro||''),lat:coord.lat,lon:coord.lng,date:String(p.date||p.data||new Date().toLocaleDateString('pt-BR')),time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),source:'programacao',quality:'Localização confirmada manualmente',active:true};
+  var r={id:'program-'+String(p.id||Date.now())+'-'+Date.now(),programId:String(p.id||''),teamId:String(p.teamId||p.equipeId||''),team:programTeam(p),fiscal:String(p.fiscal||p.responsavel||p.encarregado||''),street:String(p.local||p.rua||''),neighborhood:String(p.bairro||''),lat:coord.lat,lon:coord.lng,date:String(p.date||p.data||new Date().toLocaleDateString('pt-BR')),time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),source:'programacao',quality:'Localização confirmada manualmente',active:true};
   var prior=records.find(function(x){return x.source==='programacao'&&String(x.teamId)===r.teamId&&String(x.date)===r.date&&r.teamId});
   r.updatedAt=new Date().toISOString();if(prior){Object.assign(prior,r,{id:prior.id})}else records.push(r);
   try{persist();clearProgramPreview();render();focus(prior||r);el('murbGeoLocationStatus').textContent='Ponto registrado no mapa da Geolocalização deste navegador.'}
