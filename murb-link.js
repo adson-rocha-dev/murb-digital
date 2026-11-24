@@ -81,7 +81,7 @@ function queueSync(){
  clearTimeout(syncTimer);syncTimer=setTimeout(flushPending,4000);
 }
 async function flushPending(){
- if(syncing||!navigator.onLine||!localStorage.getItem(PENDING_KEY)||localStorage.getItem(CONFLICT_KEY))return;
+ if(syncing||murbAutoChecking||!navigator.onLine||!localStorage.getItem(PENDING_KEY)||localStorage.getItem(CONFLICT_KEY))return;
  syncing=true;
  try{
   const s=await getSession();if(!s)return; // sem senha salva; login explícito necessário
@@ -92,6 +92,11 @@ async function flushPending(){
   // Impedir apenas publicação cruzada entre contas distintas.
   if(localStorage.getItem(OWNER_KEY) && localStorage.getItem(OWNER_KEY)!==u.id){status('Conta diferente da vinculada a este navegador. Entre com a conta correta para enviar o Johnson.');return;}
   const pending=localStorage.getItem(PENDING_KEY);
+  // A save without operational changes must not block reception.
+  if(localStorage.getItem(AUTO_BASE_KEY)===murbDataFingerprint(data)){
+   if(localStorage.getItem(PENDING_KEY)===pending)localStorage.removeItem(PENDING_KEY);
+   setTimeout(murbAutoPull,0);return;
+  }
   // Before publishing, compare the cloud head against the last confirmed baseline.
   // Never overwrite another device's changes without a verified common revision.
   const head=await murbLatestAuto(u.id,s.access_token);
@@ -119,24 +124,25 @@ async function flushPending(){
     murbConfirmSynced(u.id,head.name,pending);return;
    }
   }
-  const content=JSON.stringify(backup());const bytes=new Blob([content],{type:'application/json'});
+  const sentFingerprint=murbDataFingerprint(data);const content=JSON.stringify(backup());const sentData=JSON.parse(JSON.stringify(data));const bytes=new Blob([content],{type:'application/json'});
   if(bytes.size>10*1024*1024){status('Backup pendente excede 10 MB; exporte JSON manualmente.');return;}
   const path=u.id+'/johnson-auto-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json';
   await api('/storage/v1/object/murb-johnson/'+path,{method:'POST',headers:apiHeaders(s.access_token,{'Content-Type':'application/json','x-upsert':'false'}),body:bytes});
   const uploadedName=path.split('/').pop();
   const verified=await murbReadAuto(uploadedName,u.id,s.access_token);
-  if(!murbPayloadEqual(verified,data))throw Error('O Supabase não confirmou o conteúdo enviado.');
+  if(!murbPayloadEqual(verified,sentData))throw Error('O Supabase não confirmou o conteúdo enviado.');
   localStorage.setItem(AUTO_FILE_KEY,uploadedName);
-  localStorage.setItem(AUTO_BASE_KEY,murbDataFingerprint(data));
+  localStorage.setItem(AUTO_BASE_KEY,sentFingerprint);
   localStorage.removeItem(AUTO_ERROR_KEY);
-  if(localStorage.getItem(PENDING_KEY)===pending)localStorage.removeItem(PENDING_KEY);
+  if(localStorage.getItem(PENDING_KEY)===pending&&murbDataFingerprint(data)===sentFingerprint)localStorage.removeItem(PENDING_KEY);
+  else queueSync();
   localStorage.setItem(LAST_SYNC_KEY,new Date().toISOString());
   localStorage.setItem(OWNER_KEY,u.id);
   localStorage.removeItem(CONFLICT_KEY);
   status('Alterações confirmadas no Supabase. '+new Date().toLocaleString('pt-BR'));
   setTimeout(murbAutoPull,800);
- }catch(e){console.warn('Backup automático pendente:',e.message);status('Backup automático pendente: '+e.message+'. Dados locais preservados.');}
- finally{syncing=false;}
+ }catch(e){murbAutoWarning('Envio pendente: '+e.message+'. Dados locais preservados.');}
+ finally{syncing=false;setTimeout(murbRefreshConnectionIndicator,0);}
 }
 /* V35: recepção automática segura. O bucket de Johnson guarda snapshots, não
    transações; divergências sem ancestral comum exigem revisão humana. */
@@ -203,7 +209,17 @@ async function murbAutoPull(){
   const owner=localStorage.getItem(OWNER_KEY);
   if(owner&&owner!==u.id){murbAutoWarning('Conta Supabase diferente da vinculada a este navegador.');return;}
   const head=await murbLatestAuto(u.id,s.access_token);
-  if(!head||head.name===localStorage.getItem(AUTO_FILE_KEY))return;
+  if(!head)return;
+  if(head.name===localStorage.getItem(AUTO_FILE_KEY)&&localStorage.getItem(AUTO_BASE_KEY)===murbDataFingerprint(data)){
+   const confirmed=await murbReadAuto(head.name,u.id,s.access_token);
+   if(murbPayloadEqual(confirmed,data))murbConfirmSynced(u.id,head.name,localStorage.getItem(PENDING_KEY));
+   return;
+  }
+  if(head.name===localStorage.getItem(AUTO_FILE_KEY))return;
+  const stalePending=localStorage.getItem(PENDING_KEY);
+  if(stalePending&&localStorage.getItem(AUTO_BASE_KEY)===murbDataFingerprint(data)){
+   localStorage.removeItem(PENDING_KEY);
+  }
   if(localStorage.getItem(PENDING_KEY)){
    // Pending does not imply divergence. Check whether the cloud already
    // contains precisely the same operational state before reporting conflict.
@@ -218,7 +234,7 @@ async function murbAutoPull(){
   if(murbPayloadEqual(remote,data)){
    localStorage.setItem(AUTO_FILE_KEY,head.name);
    localStorage.setItem(AUTO_BASE_KEY,murbDataFingerprint(data));
-   localStorage.removeItem(AUTO_ERROR_KEY);return;
+   murbConfirmSynced(u.id,head.name,null);return;
   }
   const previous=localStorage.getItem(AUTO_BASE_KEY);
   const current=murbDataFingerprint(data);
@@ -241,6 +257,7 @@ async function murbAutoPull(){
   localStorage.setItem(AUTO_BASE_KEY,murbDataFingerprint(next));
   localStorage.setItem(OWNER_KEY,u.id);
   localStorage.removeItem(AUTO_ERROR_KEY);
+  localStorage.setItem(LAST_SYNC_KEY,new Date().toISOString());
   if(typeof renderAll==='function')renderAll();
   status('Atualização automática recebida do Supabase · '+new Date().toLocaleTimeString('pt-BR'));
  }catch(e){murbAutoWarning('Falha na consulta automática: '+e.message)}
