@@ -3913,7 +3913,7 @@ function dpEdit(id){const x=dpItems().find(x=>String(x.id)===String(id));if(!x)r
  Object.entries({dpId:'id',dpDate:'date',dpLocal:'local',dpBairro:'bairro',dpService:'service',dpNote:'note'}).forEach(([el,key])=>$(el).value=x[key]??'');
  $('dpTeam').value=x.isExternal?'__external__':x.teamId;dpTeamChange();if(x.isExternal){$('dpExternalName').value=x.teamName||'';$('dpExternalOwner').value=x.encarregado||'';$('dpLead').value=x.responsavel||'';$('dpActive').value=x.activeCount??0;}$('dailyProgramForm').scrollIntoView({behavior:'smooth'});
 }
-function dpDelete(id){if(!confirm('Excluir esta programação?'))return;data.dailySchedule=dpItems().filter(x=>String(x.id)!==String(id));save();toast('Programação excluída.')}
+function dpDelete(id){if(!confirm('Excluir esta programação?'))return;window.murbGeoFreezeCompleted?.();data.dailySchedule=dpItems().filter(x=>String(x.id)!==String(id));save();toast('Programação excluída.')}
 function dpCSV(){let rows=[['Data','Equipe','Responsável','Ativos','Local','Bairro','Serviço','Encarregado','Observações'],...dpFiltered().map(x=>[murbDataBR(x.date),x.teamName,x.responsavel,x.activeCount,x.local,x.bairro,x.service,x.encarregado,x.note])];downloadFile('MURB_PROGRAMACAO_'+today()+'.csv','\ufeff'+rows.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';')).join('\r\n'),'text/csv;charset=utf-8')}
 function dpPrint(){const xs=dpFiltered();const cards=xs.map(x=>'<article class="card"><h3>'+esc(x.teamName)+'</h3><p><b>Data:</b> '+esc(murbDataBR(x.date))+'</p><p><b>Local:</b> '+esc(x.local)+'</p><p><b>Bairro:</b> '+esc(x.bairro)+'</p><p><b>Responsável:</b> '+esc(x.responsavel)+'</p><p><b>Ativos:</b> '+esc(x.activeCount)+'</p><p><b>Serviço:</b> '+esc(x.service)+'</p><p><b>Encarregado:</b> '+esc(x.encarregado)+'</p><p>'+esc(x.note)+'</p></article>').join('');
  const w=window.open('','_blank');if(!w){toast('Permita pop-ups para imprimir.');return}
@@ -3927,7 +3927,7 @@ $('dailyProgramForm').addEventListener('submit',e=>{
  if(external&&(!$('dpExternalName').value.trim()||!$('dpExternalOwner').value.trim()||!$('dpLead').value.trim()||!Number.isInteger(active)||active<0)){toast('Informe equipe externa, encarregado, fiscal e quantidade válida.');return}
  const x={id:id||uid(),date:$('dpDate').value,isExternal:external,teamId:external?'':t.id,teamName:external?$('dpExternalName').value.trim():t.name,responsavel:external?$('dpLead').value.trim():t.lead||'',activeCount:external?active:data.employees.filter(e=>String(e.teamId)===String(t.id)&&e.status==='Ativo').length,local:$('dpLocal').value.trim(),bairro:$('dpBairro').value.trim(),service:$('dpService').value.trim(),note:$('dpNote').value.trim(),encarregado:external?$('dpExternalOwner').value.trim():murbPrincipalName(),updatedAt:new Date().toISOString()};
  if(!x.date||!x.local||!x.bairro){toast('Preencha data, local e bairro.');return}
- if(old){if(old.date!==x.date||String(old.teamId)!==String(x.teamId)||old.teamName!==x.teamName){x.serviceState="pending";x.serviceDirection="forward";}Object.assign(old,x);}else items.push(x);
+ if(old){window.murbGeoFreezeCompleted?.();if(old.date!==x.date||String(old.teamId)!==String(x.teamId)||old.teamName!==x.teamName||old.local!==x.local||old.bairro!==x.bairro){x.serviceState="pending";x.serviceDirection="forward";}Object.assign(old,x);}else items.push(x);
  if(save()){dpReset();dpRender();if(typeof dashProgramRender==='function')dashProgramRender();toast('Programação salva e incluída no próximo Johnson.')}
 });
 </script>
@@ -3972,7 +3972,7 @@ function murbServiceColor(state){return ({pending:'#94a3b8',running:'#eab308',do
 function murbServiceCardAttrs(row){const state=murbServiceState(row);return ' data-service-status="'+state+'" style="--service-color:'+murbServiceColor(state)+'"';}
 function murbServiceControls(row){const state=murbServiceState(row),step=['pending','running','done'].indexOf(state);return '<div class="murb-service-control"><button type="button" class="murb-service-toggle" data-service-row="'+esc(String(row.id))+'" style="--service-color:'+murbServiceColor(state)+'" onclick="murbCycleService(this.dataset.serviceRow)" aria-label="Execução do serviço: '+murbServiceLabel(state)+'. Alterar status"><span class="service-orb" aria-hidden="true"></span><span class="service-copy"><small>EXECUÇÃO DO SERVIÇO</small><b>'+murbServiceLabel(state)+'</b></span><span class="service-repeat" aria-hidden="true">↻</span><span class="service-progress" aria-hidden="true">'+[0,1,2].map(i=>'<i class="'+(i<=step?'on':'')+'"></i>').join('')+'</span></button></div>';}
 function murbCycleService(id){const row=(data.dailySchedule||[]).find(x=>String(x.id)===String(id));if(!row)return;const state=murbServiceState(row);const next=state==='pending'?'running':state==='done'?'running':row.serviceDirection==='back'?'pending':'done';murbSetServiceState(id,next,state==='done'||next==='done'?'back':next==='pending'?'forward':row.serviceDirection||'forward');}
-function murbSetServiceState(id,state,direction){if(!['pending','running','done'].includes(state))return;const row=(data.dailySchedule||[]).find(x=>String(x.id)===String(id));if(!row)return;const old=row.serviceState,oldTime=row.updatedAt,oldDirection=row.serviceDirection;row.serviceState=state;row.serviceDirection=direction||(state==='done'?'back':'forward');row.updatedAt=new Date().toISOString();if(!save()){row.serviceState=old;row.updatedAt=oldTime;row.serviceDirection=oldDirection;return;}toast('Status do serviço: '+murbServiceLabel(state));}
+function murbSetServiceState(id,state,direction){if(!['pending','running','done'].includes(state))return;const row=(data.dailySchedule||[]).find(x=>String(x.id)===String(id));if(!row)return;const old=row.serviceState,oldTime=row.updatedAt,oldDirection=row.serviceDirection;row.serviceState=state;row.serviceDirection=direction||(state==='done'?'back':'forward');row.updatedAt=new Date().toISOString();if(!save()){row.serviceState=old;row.updatedAt=oldTime;row.serviceDirection=oldDirection;return;}if(old==='done'&&state!=='done'){window.murbGeoReopenService?.(row);window.murbRefreshServiceMap?.();}toast('Status do serviço: '+murbServiceLabel(state));}
 function dashProgramRender(){
  const host=$('dashProgramCards');if(!host)return;
  const rows=dashProgramRows(),date=$('dashProgramDate').value;
@@ -4097,7 +4097,7 @@ function murbDashProgramSave(){
  const date=document.getElementById('murbProgramDate').value,local=document.getElementById('murbProgramLocal').value.trim(),bairro=document.getElementById('murbProgramBairro').value.trim();
  if(!date||!local||!bairro){toast('Preencha data, local e bairro.');return;}
  const items=dpItems();let existing=items.find(x=>x.date===date&&(row.isExternal?String(x.id)===String(row.id):!x.isExternal&&String(x.teamId)===String(row.teamId)));
- if(existing){existing.local=local;existing.bairro=bairro;existing.updatedAt=new Date().toISOString();}
+ if(existing){window.murbGeoFreezeCompleted?.();if(existing.local!==local||existing.bairro!==bairro){existing.serviceState="pending";existing.serviceDirection="forward";}existing.local=local;existing.bairro=bairro;existing.updatedAt=new Date().toISOString();}
  else{const team=data.teams.find(t=>String(t.id)===String(row.teamId));items.push({...row,id:uid(),date,local,bairro,serviceState:"pending",teamName:team?.name||row.teamName,responsavel:team?.lead||row.responsavel,activeCount:row.activeCount||row.total||0,updatedAt:new Date().toISOString()});}
  if(save()){murbDashProgramClose();if(typeof dpRender==='function')dpRender();dashProgramRender();toast('Programação salva no menu Programações.');}
 }
@@ -5977,7 +5977,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
    geoCache=new Map(Array.from(latest.values()).filter(f=>geoCache.has(f.name)).map(f=>[f.name,geoCache.get(f.name)]));
    load();var outstanding=new Set(dirtyIds().map(String)),byId=new Map(records.map(r=>[String(r.id),r])),changed=false;
    remote.forEach(function(next,id){if(outstanding.has(id))return;var old=byId.get(id);if(!old){records.push(next);changed=true}else if(JSON.stringify(old)!==JSON.stringify(next)){Object.assign(old,next);changed=true}});
-   if(changed){localStorage.setItem(storageKey,JSON.stringify(records));render();window.dispatchEvent(new Event('murb-geo-updated'))}
+   if(changed){localStorage.setItem(storageKey,JSON.stringify(records));freezeCompleted();render();window.dispatchEvent(new Event('murb-geo-updated'))}
    markDirty(records.filter(r=>!remote.has(String(r.id))).map(r=>r.id));
    var errors=[];
    for(var id of dirtyIds().map(String)){checkOwner();load();var local=records.find(r=>String(r.id)===id);if(!local)continue;
@@ -6004,26 +6004,37 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
  }
  function safeText(node,value){node.textContent=String(value||'')}
  function serviceDate(v){var t=String(v||'').trim(),m=t.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?m[3]+'-'+m[2]+'-'+m[1]:t.slice(0,10)}
- function pointService(r){var rows=programs().filter(function(p){return serviceDate(p.date)===serviceDate(r.date)&&(r.teamId?String(p.teamId)===String(r.teamId):!p.teamId&&norm(p.teamName)===norm(r.team))});var exact=rows.find(function(p){return r.programId&&String(p.id)===String(r.programId)});if(!exact)exact=rows.find(function(p){return norm(p.local)===norm(r.street)&&norm(p.bairro)===norm(r.neighborhood)});return murbServiceState(exact||(rows.length===1?rows[0]:null))}
+ function sameServiceAddress(p,r){return norm(p.local||p.rua)===norm(r.street)&&norm(p.bairro||p.neighborhood)===norm(r.neighborhood)}
+ function matchingProgram(r){var rows=programs().filter(function(p){return serviceDate(p.date)===serviceDate(r.date)&&(r.teamId?String(p.teamId)===String(r.teamId):!p.teamId&&norm(p.teamName)===norm(r.team))&&sameServiceAddress(p,r)});return rows.find(p=>r.programId&&String(p.id)===String(r.programId))||rows[0]}
+ function pointService(r){return r.completedAt?'done':murbServiceState(matchingProgram(r))}
+ function freezeCompleted(){load();var changed=false;records.forEach(function(r){var p=matchingProgram(r);if(!r.completedAt&&p&&murbServiceState(p)==='done'){r.completedAt=p.updatedAt||new Date().toISOString();changed=true}});if(changed)persist()}
+ window.murbGeoFreezeCompleted=freezeCompleted;
+ window.murbGeoReopenService=function(row){load();var changed=false;records.forEach(function(r){if(r.completedAt&&matchingProgram(r)===row){r.completedAt=null;changed=true}});if(changed)persist()};
  function popup(r){
   var box=document.createElement('div');box.className='geo-popup';
   var title=document.createElement('strong');safeText(title,r.team||'Equipe não informada');box.appendChild(title);
-  var rows=['Status: '+murbServiceLabel(pointService(r)),'Fiscal: '+(r.fiscal||'Não informado'),[r.street,r.neighborhood,r.zip].filter(Boolean).join(' • '),[r.date,r.time].filter(Boolean).join(' '),r.source==='gps'?'GPS • precisão estimada '+Math.round(r.accuracy||0)+' m':(r.source==='coordenadas-manuais'?'Coordenadas informadas manualmente':'')];
+  var rows=['Status: '+(pointService(r)==='done'?'Serviço concluído':murbServiceLabel(pointService(r))),r.completedAt?'Conclusão: '+new Date(r.completedAt).toLocaleString('pt-BR'):'','Fiscal: '+(r.fiscal||'Não informado'),[r.street,r.neighborhood,r.zip].filter(Boolean).join(' • '),[r.date,r.time].filter(Boolean).join(' '),r.source==='gps'?'GPS • precisão estimada '+Math.round(r.accuracy||0)+' m':(r.source==='coordenadas-manuais'?'Coordenadas informadas manualmente':'')];
   rows.forEach(function(v){if(v){var p=document.createElement('div');safeText(p,v);box.appendChild(p)}});
   if(r.photo){var img=document.createElement('img');img.src=r.photo;img.alt='Fotografia do registro';img.title='Toque para ampliar a fotografia';img.addEventListener('click',function(){var overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#000e;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out';var large=document.createElement('img');large.src=r.photo;large.alt='Fotografia ampliada';large.style.cssText='max-width:96vw;max-height:92vh;object-fit:contain';overlay.appendChild(large);overlay.addEventListener('click',function(){overlay.remove()});document.body.appendChild(overlay)});box.appendChild(img)}
   var del=document.createElement('button');del.type='button';del.className='geo-danger';del.textContent='Excluir ponto do mapa';del.onclick=function(){togglePoint(r.id)};box.appendChild(del);
   return box;
  }
+ function groupPoints(items,state){
+  var groups=new Map();items.forEach(function(r){var street=norm(r.street).replace(/\s+/g,' '),bairro=norm(r.neighborhood).replace(/\s+/g,' ');var key=street&&bairro&&r.date?JSON.stringify([serviceDate(r.date),street,bairro]):String(r.id);var g=groups.get(key)||[];g.push(r);groups.set(key,g)});
+  return Array.from(groups.values()).map(function(items){var states=items.map(state);return {items:items,state:states.every(x=>x==='done')?'done':states.every(x=>x==='pending')?'pending':'running',names:Array.from(new Set(items.map(r=>r.team||'Equipe'))).join(' e '),point:items[0]}});
+ }
+ window.murbGeoGroupPoints=groupPoints;
+ function groupPopup(g){var box=document.createElement('div');box.className='geo-popup';var title=document.createElement('strong');safeText(title,g.names+' · '+(g.state==='done'?'Serviço concluído':murbServiceLabel(g.state)));box.appendChild(title);g.items.forEach(function(r){box.appendChild(document.createElement('hr'));box.appendChild(popup(r))});return box}
  function draw(){
   if(!map||!markers)return;
   markers.clearLayers();markerById.clear();
-  records.filter(function(r){return r.active!==false&&Number.isFinite(Number(r.lat))&&Number.isFinite(Number(r.lon))}).forEach(function(r){
-   var pin=window.L.divIcon({className:'',html:'<div class="geo-pin" style="width:17px;height:17px;background:'+murbServiceColor(pointService(r))+';box-shadow:0 0 0 2px '+murbServiceColor(pointService(r))+',0 3px 8px #0004"></div>',iconSize:[20,20],iconAnchor:[10,10]});
-   var m=window.L.marker([Number(r.lat),Number(r.lon)],{icon:pin}).addTo(markers);
-   m.bindPopup(popup(r));markerById.set(String(r.id),m);
+  groupPoints(records.filter(function(r){return r.active!==false&&r.lat!=null&&r.lon!=null&&Number.isFinite(Number(r.lat))&&Number.isFinite(Number(r.lon))}),pointService).forEach(function(g){
+   var r=g.point,c=murbServiceColor(g.state),count=new Set(g.items.map(x=>x.teamId||x.team)).size;
+   var pin=window.L.divIcon({className:'',html:'<div class="geo-pin" style="width:24px;height:24px;background:'+c+';color:white;text-align:center;line-height:24px;font-weight:bold;box-shadow:0 0 0 2px '+c+'">'+(count>1?count:'')+'</div>',iconSize:[24,24],iconAnchor:[12,12]});
+   var m=window.L.marker([Number(r.lat),Number(r.lon)],{icon:pin}).addTo(markers);m.bindPopup(g.items.length===1?popup(r):groupPopup(g));var label=document.createElement('span');safeText(label,g.names+' · '+(g.state==='done'?'Serviço concluído':murbServiceLabel(g.state)));m.bindTooltip(label,{permanent:true,direction:'top'});g.items.forEach(x=>markerById.set(String(x.id),m));
   });
  }
- window.murbRefreshServiceMap=function(){if(panel.classList.contains('murb-geo-visible'))draw();};
+ window.murbRefreshServiceMap=function(){freezeCompleted();if(panel.classList.contains('murb-geo-visible'))draw();};
  function focus(r){
   if(!map){note('O mapa ainda está carregando.');return}
   if(r.active===false){note('Este ponto foi removido do mapa. Use Restaurar.');return}
@@ -6211,7 +6222,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   if(!currentTeam()||String(currentTeam().id)!==pending.teamId){note('A equipe mudou. Busque novamente.');clearPreview();return}
   note('Salvando ponto confirmado...');
   var p=pending,photo=await thumbnail(p.file),r={id:Date.now()+'-'+Math.random().toString(36).slice(2),teamId:p.teamId,team:p.team,fiscal:p.fiscal,street:p.street,neighborhood:p.neighborhood,zip:p.zip,city:p.city,state:p.state,lat:p.lat,lon:p.lon,quality:p.quality,date:el('murbGeoDate').value.trim()||new Date().toLocaleDateString('pt-BR'),time:el('murbGeoTime').value.trim()||new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),source:p.source||'endereco',accuracy:p.accuracy||null,photo:photo,photoName:p.file.name,active:true};
-  r.updatedAt=new Date().toISOString();records.push(r);
+  r.updatedAt=new Date().toISOString();var service=matchingProgram(r);if(murbServiceState(service)==='done')r.completedAt=service.updatedAt||r.updatedAt;records.push(r);
   try{persist()}catch(e){records.pop();note('Falha ao salvar no navegador: '+e.message);return}
   clearPreview();render();focus(r);note('Ponto confirmado e salvo. '+r.quality+'.');
  }
@@ -6359,7 +6370,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   if(!selectedProgram||!programPreview)return;
   var coord=programPreview.getLatLng(),p=selectedProgram;
   var r={id:'program-'+String(p.id||Date.now())+'-'+Date.now(),programId:String(p.id||''),teamId:String(p.teamId||p.equipeId||''),team:programTeam(p),fiscal:String(p.fiscal||p.responsavel||p.encarregado||''),street:String(p.local||p.rua||''),neighborhood:String(p.bairro||''),lat:coord.lat,lon:coord.lng,date:String(p.date||p.data||new Date().toLocaleDateString('pt-BR')),time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),source:'programacao',quality:'Localização confirmada manualmente',active:true};
-  var prior=records.find(function(x){return x.source==='programacao'&&String(x.teamId)===r.teamId&&String(x.date)===r.date&&r.teamId});
+  freezeCompleted();var prior=records.find(function(x){return x.source==='programacao'&&x.active!==false&&!x.completedAt&&String(x.programId)===r.programId&&r.programId&&sameServiceAddress(p,x)&&serviceDate(x.date)===serviceDate(r.date)});if(murbServiceState(p)==='done')r.completedAt=p.updatedAt||new Date().toISOString();
   r.updatedAt=new Date().toISOString();if(prior){Object.assign(prior,r,{id:prior.id})}else records.push(r);
   try{persist();clearProgramPreview();render();focus(prior||r);el('murbGeoLocationStatus').textContent='Ponto registrado no mapa da Geolocalização deste navegador.'}
   catch(e){el('murbGeoLocationStatus').textContent='Falha ao salvar: '+e.message}
