@@ -1420,7 +1420,7 @@ body main.main > header.topbar #pageSub {color:#c9e0d9!important}
 </section>
 <section class="section" id="dailyProgramming">
 <div class="panel"><h2>Programação diária das equipes</h2><p class="sub">Cadastre as equipes programadas, locais e bairros para cada data.</p>
-<form id="dailyProgramForm"><input type="hidden" id="dpId"><div class="form-grid">
+<div class="actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button type="button" class="btn" onclick="dpJointMode(false)">Programação individual</button><button type="button" class="btn primary" onclick="dpJointMode(true)">Programação conjunta</button></div><form id="dailyProgramForm"><div id="dpJointBox" hidden><label>Selecione duas ou mais equipes</label><div id="dpJointTeams" style="display:flex;flex-wrap:wrap;gap:12px;padding:12px 0"></div></div><input type="hidden" id="dpId"><div class="form-grid">
 <div class="field"><label>Data *</label><input type="date" id="dpDate" required></div>
 <div class="field"><label>Equipe *</label><select id="dpTeam" required></select></div>
 <div class="field dp-external" id="dpExternalNameBox" hidden><label>Nome da equipe externa *</label><input id="dpExternalName" maxlength="120" placeholder="Ex.: C20 — Capina"></div>
@@ -3866,7 +3866,10 @@ function dpTeamChange(){
  if(!external){$('dpLead').value=t?.lead||'';$('dpActive').value=t?data.employees.filter(e=>String(e.teamId)===String(t.id)&&e.status==='Ativo').length:''}
  else if(!$('dpId').value){$('dpLead').value='';$('dpActive').value='';}
 }
-function dpReset(){$('dailyProgramForm').reset();$('dpId').value='';$('dpDate').value=today();$('dpExternalName').value='';$('dpExternalOwner').value='';dpTeamChange()}
+let dpJoint=false;
+function dpJointMode(on){dpJoint=on;$('dpJointBox').hidden=!on;$('dpTeam').required=!on;$('dpTeam').closest('.field').hidden=on;if(on){$('dpId').value='';$('dpTeam').value='';dpTeamChange();dpJointRender()}else{$('dpJointTeams').replaceChildren()}}
+function dpJointRender(){if(!dpJoint)return;const root=$('dpJointTeams'),selected=new Set(Array.from(root.querySelectorAll('input:checked'),x=>x.value));root.replaceChildren();data.teams.forEach(t=>{const l=document.createElement('label'),c=document.createElement('input');c.type='checkbox';c.value=String(t.id);c.checked=selected.has(c.value);l.append(c,document.createTextNode(' '+t.name));root.append(l)})}
+function dpReset(){dpJointMode(false);$('dailyProgramForm').reset();$('dpId').value='';$('dpDate').value=today();$('dpExternalName').value='';$('dpExternalOwner').value='';dpTeamChange()}
 function dpFiltered(){let d=$('dpFilterDate').value,t=$('dpFilterTeam').value,b=$('dpFilterBairro').value.toLowerCase().trim();return [...dpItems()].filter(x=>(!d||x.date===d)&&(!t||(t==='__external__'?!!x.isExternal:String(x.teamId)===t))&&(!b||String(x.bairro).toLowerCase().includes(b))).sort((a,b)=>String(a.date).localeCompare(String(b.date)))}
 function dpRender(){
  if(!$('dpTeam'))return;
@@ -3874,7 +3877,7 @@ function dpRender(){
  let opts=data.teams.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join('');
  $('dpTeam').innerHTML='<option value="">Selecione uma equipe</option>'+opts+'<option value="__external__">+ Equipe externa (cadastro manual)</option>'; $('dpTeam').value=v;
  $('dpFilterTeam').innerHTML='<option value="">Todas as equipes</option>'+opts+'<option value="__external__">Equipes externas</option>'; $('dpFilterTeam').value=f;
- if(!$('dpDate').value)$('dpDate').value=today();dpTeamChange();
+ if(!$('dpDate').value)$('dpDate').value=today();dpTeamChange();dpJointRender();
  const xs=dpFiltered();$('dpSummary').textContent=xs.length+' programação(ões) · '+new Set(xs.map(x=>x.isExternal?'externa:'+x.teamName+':'+x.encarregado:String(x.teamId))).size+' equipe(s)';
  $('dpCards').innerHTML=xs.length?xs.map(x=>'<article class="dp-card"'+murbServiceCardAttrs(x)+'><h3>'+esc(x.teamName)+'</h3><p><b>Data:</b> '+esc(murbDataBR(x.date))+'</p><p><b>Local:</b> '+esc(x.local)+'</p><p><b>Bairro:</b> '+esc(x.bairro)+'</p><p><b>Responsável:</b> '+esc(x.responsavel)+'</p><p><b>Ativos:</b> '+esc(x.activeCount)+'</p><p><b>Serviço:</b> '+esc(x.service)+'</p><p><b>Encarregado:</b> '+esc(x.encarregado)+'</p><p>'+esc(x.note)+'</p>'+murbServiceControls(x)+'<button class="btn" data-dp-copy="'+esc(x.id)+'">📋 Copiar para WhatsApp</button> <button class="btn" data-dp-edit="'+esc(x.id)+'">Editar</button> <button class="btn" data-dp-delete="'+esc(x.id)+'">Excluir</button></article>').join(''):'<p class="sub">Nenhuma programação encontrada.</p>';
  $('dpCards').querySelectorAll('[data-dp-copy]').forEach(b=>b.onclick=()=>dpCopyWhatsApp(b.dataset.dpCopy));
@@ -3909,7 +3912,7 @@ async function dpCopyWhatsApp(id){
  if(copied){toast('Programação copiada! Cole no grupo do WhatsApp.');return}
  window.prompt('Copie a programação abaixo para enviar pelo WhatsApp:',message);
 }
-function dpEdit(id){const x=dpItems().find(x=>String(x.id)===String(id));if(!x)return;
+function dpEdit(id){dpJointMode(false);const x=dpItems().find(x=>String(x.id)===String(id));if(!x)return;
  Object.entries({dpId:'id',dpDate:'date',dpLocal:'local',dpBairro:'bairro',dpService:'service',dpNote:'note'}).forEach(([el,key])=>$(el).value=x[key]??'');
  $('dpTeam').value=x.isExternal?'__external__':x.teamId;dpTeamChange();if(x.isExternal){$('dpExternalName').value=x.teamName||'';$('dpExternalOwner').value=x.encarregado||'';$('dpLead').value=x.responsavel||'';$('dpActive').value=x.activeCount??0;}$('dailyProgramForm').scrollIntoView({behavior:'smooth'});
 }
@@ -3921,7 +3924,7 @@ function dpPrint(){const xs=dpFiltered();const cards=xs.map(x=>'<article class="
 $('dpTeam').addEventListener('change',dpTeamChange);
 ['dpFilterDate','dpFilterTeam','dpFilterBairro'].forEach(id=>$(id).addEventListener('input',dpRender));
 $('dailyProgramForm').addEventListener('submit',e=>{
- e.preventDefault();const external=dpIsExternal(),t=dpTeam();if(!external&&!t){toast('Selecione uma equipe.');return}
+ e.preventDefault();if(dpJoint){const selected=Array.from($('dpJointTeams').querySelectorAll('input:checked'),c=>c.value),ts=data.teams.filter(t=>selected.includes(String(t.id)));if(ts.length<2){toast('Selecione pelo menos duas equipes.');return}const date=$('dpDate').value,local=$('dpLocal').value.trim(),bairro=$('dpBairro').value.trim();if(!date||!local||!bairro){toast('Preencha data, local e bairro.');return}window.murbGeoFreezeCompleted?.();const jointId=uid(),items=dpItems();ts.forEach(t=>{const old=items.find(x=>x.date===date&&!x.isExternal&&String(x.teamId)===String(t.id));const x={id:old?.id||uid(),jointId,date,teamId:t.id,teamName:t.name,isExternal:false,responsavel:t.lead||'',activeCount:data.employees.filter(e=>String(e.teamId)===String(t.id)&&e.status==='Ativo').length,local,bairro,service:$('dpService').value.trim(),note:$('dpNote').value.trim(),encarregado:murbPrincipalName(),updatedAt:new Date().toISOString()};if(!old||old.local!==local||old.bairro!==bairro){x.serviceState='pending';x.serviceDirection='forward'}if(old)Object.assign(old,x);else items.push(x)});if(save()){dpReset();dpRender();dashProgramRender();toast('Programação conjunta salva.')}return}const external=dpIsExternal(),t=dpTeam();if(!external&&!t){toast('Selecione uma equipe.');return}
  const id=$('dpId').value,items=dpItems(),old=items.find(x=>String(x.id)===id);
  const active=Number($('dpActive').value);
  if(external&&(!$('dpExternalName').value.trim()||!$('dpExternalOwner').value.trim()||!$('dpLead').value.trim()||!Number.isInteger(active)||active<0)){toast('Informe equipe externa, encarregado, fiscal e quantidade válida.');return}
@@ -5893,7 +5896,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
     </div>
    </div>
   </div>
-  <div class="geo-card geo-history-card"><details id="murbGeoHistoryDetails"><summary>🕘 Histórico de localizações <span id="murbGeoHistoryCount">Abrir registros</span></summary><div class="geo-accordion-content"><p class="geo-muted">Remover oculta o marcador sem apagar o histórico. Você poderá restaurá-lo depois.</p><label for="murbGeoHistorySearch">Pesquisar equipe, fiscal ou endereço</label><input id="murbGeoHistorySearch" type="search" placeholder="Pesquisar registros"><div id="murbGeoRecords"></div></div></details></div>
+  <div class="geo-card geo-history-card"><details id="murbGeoHistoryDetails"><summary>🕘 Histórico de localizações <span id="murbGeoHistoryCount">Abrir registros</span></summary><div class="geo-accordion-content"><p class="geo-muted">Excluir remove definitivamente o ponto do mapa e do histórico visível.</p><label for="murbGeoHistorySearch">Pesquisar equipe, fiscal ou endereço</label><input id="murbGeoHistorySearch" type="search" placeholder="Pesquisar registros"><div id="murbGeoRecords"></div></div></details></div>
  </div>
 </section>
 
@@ -5976,7 +5979,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
    for(var [key,file] of latest){var item=geoCache.get(file.name);if(!item){item=await geoRequest('object/authenticated/murb-johnson/'+path+encodeURIComponent(file.name),{},owner);checkOwner();geoCache.set(file.name,item)}if(item&&item.id!=null)remote.set(String(item.id),item)}
    geoCache=new Map(Array.from(latest.values()).filter(f=>geoCache.has(f.name)).map(f=>[f.name,geoCache.get(f.name)]));
    load();var outstanding=new Set(dirtyIds().map(String)),byId=new Map(records.map(r=>[String(r.id),r])),changed=false;
-   remote.forEach(function(next,id){if(outstanding.has(id))return;var old=byId.get(id);if(!old){records.push(next);changed=true}else if(JSON.stringify(old)!==JSON.stringify(next)){Object.assign(old,next);changed=true}});
+   remote.forEach(function(next,id){var old=byId.get(id);if(old&&old.deleted&&!next.deleted){markDirty([id]);return}if(outstanding.has(id)&&!next.deleted)return;if(!old){records.push(next);changed=true}else if(JSON.stringify(old)!==JSON.stringify(next)){if(next.deleted){records[records.indexOf(old)]=next;localStorage.setItem(geoDirtyKey,JSON.stringify(dirtyIds().filter(x=>String(x)!==id)))}else Object.assign(old,next);changed=true}});
    if(changed){localStorage.setItem(storageKey,JSON.stringify(records));freezeCompleted();render();window.dispatchEvent(new Event('murb-geo-updated'))}
    markDirty(records.filter(r=>!remote.has(String(r.id))).map(r=>r.id));
    var errors=[];
@@ -5984,7 +5987,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
     var revision=JSON.stringify(local),cloud=remote.get(id);
     // Append immutable revisions; a removal is an inactive record, not a lost row.
     var stamp=Math.max(Date.now(),(Date.parse(cloud&&cloud.updatedAt)||0)+1,(Date.parse(local.updatedAt)||0)+1);
-    var payload=Object.assign({},local,{updatedAt:new Date(stamp).toISOString()});
+    var payload=local.deleted?{id:local.id,active:false,deleted:true,updatedAt:new Date(stamp).toISOString()}:Object.assign({},local,{updatedAt:new Date(stamp).toISOString()});
     var key=Array.from(new TextEncoder().encode(id),b=>b.toString(16).padStart(2,'0')).join('');
     var name=key+'_'+String(stamp).padStart(13,'0')+'_'+Math.random().toString(36).slice(2)+'.json';
     try{await geoRequest('object/murb-johnson/'+path+encodeURIComponent(name),{method:'POST',headers:{'Content-Type':'application/json','x-upsert':'false'},body:JSON.stringify(payload)},owner);checkOwner();load();var current=records.find(r=>String(r.id)===id);if(JSON.stringify(current)===revision){Object.assign(current,payload);localStorage.setItem(storageKey,JSON.stringify(records));localStorage.setItem(geoDirtyKey,JSON.stringify(dirtyIds().filter(x=>String(x)!==id)));}remote.set(id,payload)}catch(e){checkOwner();errors.push(e.message)}
@@ -6007,7 +6010,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
  function sameServiceAddress(p,r){return norm(p.local||p.rua)===norm(r.street)&&norm(p.bairro||p.neighborhood)===norm(r.neighborhood)}
  function matchingProgram(r){var rows=programs().filter(function(p){return serviceDate(p.date)===serviceDate(r.date)&&(r.teamId?String(p.teamId)===String(r.teamId):!p.teamId&&norm(p.teamName)===norm(r.team))&&sameServiceAddress(p,r)});return rows.find(p=>r.programId&&String(p.id)===String(r.programId))||rows[0]}
  function pointService(r){return r.completedAt?'done':murbServiceState(matchingProgram(r))}
- function freezeCompleted(){load();var changed=false;records.forEach(function(r){var p=matchingProgram(r);if(!r.completedAt&&p&&murbServiceState(p)==='done'){r.completedAt=p.updatedAt||new Date().toISOString();changed=true}});if(changed)persist()}
+ function freezeCompleted(){load();var changed=false;records.forEach(function(r){var p=matchingProgram(r);if(!r.deleted&&!r.completedAt&&p&&murbServiceState(p)==='done'){r.completedAt=p.updatedAt||new Date().toISOString();changed=true}});if(changed)persist()}
  window.murbGeoFreezeCompleted=freezeCompleted;
  window.murbGeoReopenService=function(row){load();var changed=false;records.forEach(function(r){if(r.completedAt&&matchingProgram(r)===row){r.completedAt=null;changed=true}});if(changed)persist()};
  function popup(r){
@@ -6037,27 +6040,27 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
  window.murbRefreshServiceMap=function(){freezeCompleted();if(panel.classList.contains('murb-geo-visible'))draw();};
  function focus(r){
   if(!map){note('O mapa ainda está carregando.');return}
-  if(r.active===false){note('Este ponto foi removido do mapa. Use Restaurar.');return}
+  if(r.active===false){note('Este ponto foi removido do mapa.');return}
   map.setView([Number(r.lat),Number(r.lon)],Math.max(map.getZoom(),16));
   var marker=markerById.get(String(r.id));if(marker)marker.openPopup();
   el('murbGeoMap').scrollIntoView({behavior:'smooth',block:'center'});
  }
  function togglePoint(id){
   load();var r=records.find(x=>String(x.id)===String(id));if(!r)return;
-  if(r.active!==false&&!confirm('Excluir o ponto do mapa? A equipe e as fotografias serão preservadas.'))return;
-  r.active=r.active===false;r.updatedAt=new Date().toISOString();
-  try{persist();render();note(r.active?'Ponto restaurado. Aguardando sincronização.':'Ponto removido. Aguardando sincronização.');syncGeo()}catch(e){load();render();note('Não foi possível salvar: '+e.message)}
+  if(r.deleted||!confirm('Excluir definitivamente o ponto do mapa? A equipe e as fotografias serão preservadas.'))return;
+  records[records.indexOf(r)]={id:r.id,active:false,deleted:true,updatedAt:new Date().toISOString()};
+  try{persist();render();note('Ponto excluído definitivamente. Aguardando sincronização.');syncGeo()}catch(e){load();render();note('Não foi possível salvar: '+e.message)}
  }
  function render(){
   var root=el('murbGeoRecords');root.replaceChildren();
   if(!records.length){root.textContent='Nenhuma localização registrada neste navegador.';draw();return}
-  records.slice().reverse().forEach(function(r){
+  records.filter(r=>!r.deleted).slice().reverse().forEach(function(r){
    var article=document.createElement('article'),info=document.createElement('div'),buttons=document.createElement('div');buttons.className='geo-actions';
    var strong=document.createElement('strong');safeText(strong,(r.team||'Equipe não identificada')+' • '+(r.fiscal||'Fiscal não informado'));info.appendChild(strong);
    var detail=document.createElement('p');detail.className='geo-muted';safeText(detail,[r.street,r.neighborhood,r.zip,r.date,r.time].filter(Boolean).join(' • '));info.appendChild(detail);
    var state=document.createElement('small');safeText(state,r.active===false?'Removido do mapa':'● No mapa');state.style.color=r.active===false?'#798b98':'#198c57';info.appendChild(state);
    var view=document.createElement('button');view.type='button';view.textContent='Ver no mapa';view.disabled=r.active===false;view.onclick=function(){focus(r)};buttons.appendChild(view);
-   var toggle=document.createElement('button');toggle.type='button';toggle.className=r.active===false?'':'geo-danger';toggle.textContent=r.active===false?'Restaurar':'Excluir ponto do mapa';
+   var toggle=document.createElement('button');toggle.type='button';toggle.className=r.active===false?'':'geo-danger';toggle.textContent='Excluir permanentemente';
    toggle.onclick=function(){togglePoint(r.id)};
    buttons.appendChild(toggle);article.append(info,buttons);root.appendChild(article);
   });
@@ -6368,11 +6371,11 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
  }
  function confirmProgramLocation(){
   if(!selectedProgram||!programPreview)return;
-  var coord=programPreview.getLatLng(),p=selectedProgram;
+  var coord=programPreview.getLatLng(),p=selectedProgram;var batch=p.jointId?programs().filter(x=>x.jointId===p.jointId&&x.date===p.date&&x.local===p.local&&x.bairro===p.bairro):[p];freezeCompleted();var focusPoint;batch.forEach(function(p){
   var r={id:'program-'+String(p.id||Date.now())+'-'+Date.now(),programId:String(p.id||''),teamId:String(p.teamId||p.equipeId||''),team:programTeam(p),fiscal:String(p.fiscal||p.responsavel||p.encarregado||''),street:String(p.local||p.rua||''),neighborhood:String(p.bairro||''),lat:coord.lat,lon:coord.lng,date:String(p.date||p.data||new Date().toLocaleDateString('pt-BR')),time:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),source:'programacao',quality:'Localização confirmada manualmente',active:true};
-  freezeCompleted();var prior=records.find(function(x){return x.source==='programacao'&&x.active!==false&&!x.completedAt&&String(x.programId)===r.programId&&r.programId&&sameServiceAddress(p,x)&&serviceDate(x.date)===serviceDate(r.date)});if(murbServiceState(p)==='done')r.completedAt=p.updatedAt||new Date().toISOString();
-  r.updatedAt=new Date().toISOString();if(prior){Object.assign(prior,r,{id:prior.id})}else records.push(r);
-  try{persist();clearProgramPreview();render();focus(prior||r);el('murbGeoLocationStatus').textContent='Ponto registrado no mapa da Geolocalização deste navegador.'}
+  var prior=records.find(function(x){return x.source==='programacao'&&x.active!==false&&!x.completedAt&&String(x.programId)===r.programId&&r.programId&&sameServiceAddress(p,x)&&serviceDate(x.date)===serviceDate(r.date)});if(murbServiceState(p)==='done')r.completedAt=p.updatedAt||new Date().toISOString();
+  r.updatedAt=new Date().toISOString();if(prior){Object.assign(prior,r,{id:prior.id})}else records.push(r);focusPoint=prior||r;});
+  try{persist();clearProgramPreview();render();focus(focusPoint);el('murbGeoLocationStatus').textContent='Ponto registrado no mapa da Geolocalização deste navegador.'}
   catch(e){el('murbGeoLocationStatus').textContent='Falha ao salvar: '+e.message}
  }
  function init(){
