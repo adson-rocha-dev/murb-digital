@@ -1,9 +1,0 @@
-CENTRAL OPERACIONAL V30 - INSTALAÇÃO
-
-1. Publique os arquivos da pasta CENTRAL_OPERACIONAL no site atual (preserve seus dados).
-2. Crie um Cloudflare Worker separado com o código cloudflare-resolver-worker.js.
-3. Configure a rota do Worker para https://SEU-DOMINIO/api/resolve-google-map* no domínio da Central.
-4. Confirme que a rota /api/resolve-google-map responde JSON, e não HTML do index.
-5. Em Geolocalização > Links do painel, use Atualizar pontos do dashboard.
-
-ATENÇÃO: o ZIP enviado não contém a configuração do Worker atual. Não substitua o Worker que hospeda o site sem avaliar a configuração existente. Se a rota não puder ser adicionada, a Central indicará que o serviço está indisponível. A resolução de links do Google Maps não é garantida para todo link curto.
