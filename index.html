@@ -5837,7 +5837,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
  <div class="geo-shell">
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div><h2 style="margin:0">⌖ Central de Geolocalização</h2><p class="geo-muted">MURB X Enterprise • Localizações informadas por fotografia</p></div><button type="button" id="murbGeoClose">✕ Voltar à central</button></div>
   <div class="geo-grid">
-   <div class="geo-card"><h3>Mapa operacional ampliado</h3><div id="murbGeoMap" role="region" aria-label="Mapa interativo das equipes"></div><p class="geo-muted"><span style="color:#64748b">● Não iniciado</span> · <span style="color:#a16207">● Em andamento</span> · <span style="color:#15803d">● Concluído</span><br>Toque no ponto para ver equipe, fiscal, endereço e fotografia. A posição é aproximada quando obtida por CEP ou endereço.</p></div>
+   <div class="geo-card"><h3>Mapa operacional ampliado</h3><div id="murbGeoMap" role="region" aria-label="Mapa interativo das equipes"></div><p id="murbGeoSyncStatus" class="geo-muted" role="status">Verificando sincronização dos pontos...</p><p class="geo-muted"><span style="color:#64748b">● Não iniciado</span> · <span style="color:#a16207">● Em andamento</span> · <span style="color:#15803d">● Concluído</span><br>Toque no ponto para ver equipe, fiscal, endereço e fotografia. A posição é aproximada quando obtida por CEP ou endereço.</p></div>
    <div class="geo-card geo-form-card"><h3>Adicionar localização</h3>
     <p class="geo-muted" style="margin-top:-5px">Escolha como deseja registrar o serviço.</p>
     <div class="geo-mode-switch" role="group" aria-label="Forma de localização">
@@ -5893,7 +5893,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
     </div>
    </div>
   </div>
-  <div class="geo-card geo-history-card"><details id="murbGeoHistoryDetails"><summary>🕘 Histórico de localizações <span id="murbGeoHistoryCount">Abrir registros</span></summary><div class="geo-accordion-content"><p class="geo-muted">Remover oculta o marcador sem apagar o histórico. Você poderá restaurá-lo depois.</p><label for="murbGeoHistorySearch">Pesquisar equipe, fiscal ou endereço</label><input id="murbGeoHistorySearch" type="search" placeholder="Pesquisar registros"><div id="murbGeoRecords"></div><p id="murbGeoSyncStatus" class="geo-muted" role="status">Verificando sincronização dos pontos...</p></div></details></div>
+  <div class="geo-card geo-history-card"><details id="murbGeoHistoryDetails"><summary>🕘 Histórico de localizações <span id="murbGeoHistoryCount">Abrir registros</span></summary><div class="geo-accordion-content"><p class="geo-muted">Remover oculta o marcador sem apagar o histórico. Você poderá restaurá-lo depois.</p><label for="murbGeoHistorySearch">Pesquisar equipe, fiscal ou endereço</label><input id="murbGeoHistorySearch" type="search" placeholder="Pesquisar registros"><div id="murbGeoRecords"></div></div></details></div>
  </div>
 </section>
 
@@ -5949,7 +5949,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   return await window.murbGetSupabaseSession();
  }
  async function geoRequest(path,options,owner){
-  var session=await geoSession();if(!session||!session.access_token)return null;
+  var session=await geoSession();if(!session||!session.access_token)throw Error('Sessão Supabase indisponível');
   if(!owner||String(session.user&&session.user.id)!==owner||window.murbAccountCurrent()!==owner)throw Error('Sessão alterada');
   var opts=options||{},controller=new AbortController(),timeout=setTimeout(function(){controller.abort()},12000);
   var headers=Object.assign({'apikey':'sb_publishable_2LJ2dCsQfWx4afxc8SGX7g_AIK9zqZb','Authorization':'Bearer '+session.access_token},opts.headers||{});
@@ -5962,61 +5962,43 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
  function stamp(row){var n=Date.parse(row&&row.updatedAt||row&&row.updated_at||'');return Number.isFinite(n)?n:0}
  async function syncGeo(){
   if(geoSyncing||!navigator.onLine)return;
-  var owner=window.murbAccountCurrent();if(!owner)return;
+  var owner=window.murbAccountCurrent();if(!owner){geoStatus('Geolocalização: entre no MURB Connect.');return}
   function checkOwner(){if(window.murbAccountCurrent()!==owner)throw Error('Sessão alterada')}
-  load();
+  async function readCloud(){
+   var all=[],offset=0;
+   while(true){var page=await geoRequest('murb_geo_points?select=id,payload,updated_at&order=id.asc&limit=100&offset='+offset,{},owner);checkOwner();if(!Array.isArray(page))throw Error('Sessão ou resposta indisponível');all.push(...page);if(page.length<100)return all;offset+=page.length;}
+  }
+  function mergeCloud(remote){
+   load();var outstanding=new Set(dirtyIds().map(String)),byId=new Map(records.map(r=>[String(r.id),r])),changed=false;
+   remote.forEach(function(row){if(!row.payload||outstanding.has(String(row.id)))return;var next=Object.assign({},row.payload,{id:String(row.id)}),old=byId.get(String(row.id));if(!old){records.push(next);changed=true}else if(JSON.stringify(old)!==JSON.stringify(next)){Object.assign(old,next);changed=true}});
+   if(changed){localStorage.setItem(storageKey,JSON.stringify(records));render();window.dispatchEvent(new Event('murb-geo-updated'));}
+  }
   geoSyncing=true;
   try{
-   var remote=await geoRequest('murb_geo_points?select=id,payload,updated_at&limit=10000',{headers:{'Accept':'application/json'}},owner);
-   checkOwner();
-   if(remote===null){geoStatus('Entre no MURB Connect para sincronizar os pontos.');return}
-   if(!Array.isArray(remote))throw Error('Resposta inesperada do Supabase');
-   var byId=new Map(records.map(function(r){return [String(r.id),r]}));
-   var remoteById=new Map(remote.map(function(row){return [String(row.id),row]}));
-   var dirty=new Set(dirtyIds().map(String)),toUpload=[];
-   // Preserve old points created offline on this device; never overwrite newer cloud records.
-   records.forEach(function(r){if(!remoteById.has(String(r.id)))dirty.add(String(r.id))});
-   for(var id of dirty){
-    var local=byId.get(String(id)),cloud=remoteById.get(String(id));
-    if(!local)continue;
+   var remote=await readCloud();load();var remoteById=new Map(remote.map(r=>[String(r.id),r]));
+   markDirty(records.filter(r=>!remoteById.has(String(r.id))).map(r=>r.id));
+   // Receive independent of upload failures; preserve unsent local edits.
+   mergeCloud(remote);
+   var errors=[];
+   for(var id of dirtyIds().map(String)){
+    checkOwner();load();var local=records.find(r=>String(r.id)===id);if(!local)continue;
+    var cloud=remoteById.get(id),revision=JSON.stringify(local);
     if(cloud&&stamp(cloud)>stamp(local)){
-     // A remote edit won the race. Keep the local copy in storage for manual recovery.
-     try{localStorage.setItem('murbx_geo_conflict_'+owner+'_'+id,JSON.stringify(local));localStorage.setItem(geoDirtyKey,JSON.stringify(dirtyIds().filter(function(x){return String(x)!==id})));}catch(e){continue}
-     continue;
+     localStorage.setItem('murbx_geo_conflict_'+owner+'_'+id,revision);
+     localStorage.setItem(geoDirtyKey,JSON.stringify(dirtyIds().filter(x=>String(x)!==id)));continue;
     }
-    toUpload.push({id:String(id),payload:local,updated_at:local.updatedAt||new Date().toISOString()});
+    try{
+     var result=await geoRequest('murb_geo_points?on_conflict=id',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify([{id:id,payload:local,updated_at:local.updatedAt||new Date().toISOString()}])},owner);
+     checkOwner();if(!Array.isArray(result)||!result.some(r=>String(r.id)===id))throw Error('Envio não confirmado');
+     load();var current=records.find(r=>String(r.id)===id);if(JSON.stringify(current)===revision)localStorage.setItem(geoDirtyKey,JSON.stringify(dirtyIds().filter(x=>String(x)!==id)));
+    }catch(e){checkOwner();errors.push(e.message)}
    }
-   if(toUpload.length){
-    for(var i=0;i<toUpload.length;i+=20){
-     var batch=toUpload.slice(i,i+20);
-     var result=await geoRequest('murb_geo_points?on_conflict=id',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(batch)},owner);
-     checkOwner();if(result===null)throw Error('Sessão indisponível');
-     // Clear only revisions actually sent, never newer edits made during the request.
-     var sent=new Map(batch.map(function(x){return [x.id,x.updated_at]}));
-     var remaining=dirtyIds().filter(function(id){var r=records.find(function(x){return String(x.id)===String(id)});return !sent.has(String(id))||(r&&r.updatedAt!==sent.get(String(id)))});
-     localStorage.setItem(geoDirtyKey,JSON.stringify(remaining));
-    }
-    remote=await geoRequest('murb_geo_points?select=id,payload,updated_at&limit=10000',{headers:{'Accept':'application/json'}},owner);
-   checkOwner();
-   }
-   if(!Array.isArray(remote))throw Error('Resposta inesperada do Supabase');
-   load();byId=new Map(records.map(function(r){return [String(r.id),r]}));
-   var outstanding=new Set(dirtyIds().map(String)),changed=false;
-   remote.forEach(function(row){
-    if(outstanding.has(String(row.id))||!row.payload)return;
-    var existing=byId.get(String(row.id));
-    if(!existing){records.push(row.payload);byId.set(String(row.id),row.payload);changed=true}
-    else if(JSON.stringify(existing)!==JSON.stringify(row.payload)){
-     Object.keys(existing).forEach(function(k){delete existing[k]});Object.assign(existing,row.payload);changed=true;
-    }
-   });
-   if(changed){localStorage.setItem(storageKey,JSON.stringify(records));render()}
-
-   geoSyncedOnce=true;geoStatus('Pontos sincronizados com Supabase · '+new Date().toLocaleTimeString('pt-BR'));
-  }catch(e){geoStatus('Sincronização pendente: '+e.message);console.warn('MURB GEO sync:',e)}
+   remote=await readCloud();mergeCloud(remote);
+   geoSyncedOnce=true;geoStatus(errors.length?'Geolocalização: recebimento OK; envio pendente: '+errors[0]:'Pontos sincronizados · '+remote.length+' na nuvem · '+new Date().toLocaleTimeString('pt-BR'));
+  }catch(e){geoStatus('Geolocalização pendente: '+e.message);console.warn('MURB GEO sync:',e)}
   finally{geoSyncing=false}
  }
- 
+
  function leaflet(){
   if(window.L&&window.L.map)return Promise.resolve(window.L);
   if(window.murbGeoLeafletPromise)return window.murbGeoLeafletPromise;
