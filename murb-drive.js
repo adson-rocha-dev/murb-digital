@@ -7,7 +7,8 @@ const visits=()=>{try{return JSON.parse(localStorage.getItem(key())||'[]')}catch
 const rows=()=> (data.dailySchedule||[]).filter(r=>r.date===today());
 const name=r=>r.teamName||data.teams.find(t=>String(t.id)===String(r.teamId))?.name||'Equipe';
 const points=()=>{try{return JSON.parse(localStorage.getItem('murbx_geo_records_v1')||'[]')}catch{return []}};
-function point(r){return points().filter(p=>p.active!==false&&String(p.date)===String(r.date)&&(String(p.programId||'')===String(r.id)||(!r.isExternal&&String(p.teamId)===String(r.teamId)))&&p.lat!=null&&p.lon!=null&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lon))).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))[0]}
+const geoDate=v=>{const t=String(v||'');const m=t.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);return m?m[3]+'-'+m[2]+'-'+m[1]:t.slice(0,10)};
+function point(r){return points().filter(p=>p.active!==false&&geoDate(p.date)===geoDate(r.date)&&(String(p.programId||'')===String(r.id)||(!r.isExternal&&String(p.teamId)===String(r.teamId)))&&p.lat!=null&&p.lon!=null&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lon))).sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')))[0]}
 function km(p){if(!p||!pos)return null;const rad=Math.PI/180,a=(Number(p.lat)-pos.lat)*rad,b=(Number(p.lon)-pos.lon)*rad,h=Math.sin(a/2)**2+Math.cos(pos.lat*rad)*Math.cos(Number(p.lat)*rad)*Math.sin(b/2)**2;return 12742*Math.asin(Math.sqrt(Math.min(1,h)))}
 const visited=r=>visits().some(v=>v.id===String(r.id)&&v.date===r.date);
 const frequency=r=>r.isExternal?'Externa':murbDashAbsenceRecords(r).length?murbDashAbsenceRecords(r).length+' falta(s)':(data.absenceZeroDays||[]).some(v=>String(v.teamId)===String(r.teamId)&&v.date===r.date)?'Zero faltas':'Frequência pendente';

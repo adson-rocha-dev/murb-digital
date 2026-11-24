@@ -5948,8 +5948,9 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   if(typeof window.murbGetSupabaseSession!=='function')return null;
   return await window.murbGetSupabaseSession();
  }
- async function geoRequest(path,options){
+ async function geoRequest(path,options,owner){
   var session=await geoSession();if(!session||!session.access_token)return null;
+  if(!owner||String(session.user&&session.user.id)!==owner||window.murbAccountCurrent()!==owner)throw Error('Sessão alterada');
   var opts=options||{},controller=new AbortController(),timeout=setTimeout(function(){controller.abort()},12000);
   var headers=Object.assign({'apikey':'sb_publishable_2LJ2dCsQfWx4afxc8SGX7g_AIK9zqZb','Authorization':'Bearer '+session.access_token},opts.headers||{});
   try{
@@ -5961,9 +5962,13 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
  function stamp(row){var n=Date.parse(row&&row.updatedAt||row&&row.updated_at||'');return Number.isFinite(n)?n:0}
  async function syncGeo(){
   if(geoSyncing||!navigator.onLine)return;
+  var owner=window.murbAccountCurrent();if(!owner)return;
+  function checkOwner(){if(window.murbAccountCurrent()!==owner)throw Error('Sessão alterada')}
+  load();
   geoSyncing=true;
   try{
-   var remote=await geoRequest('murb_geo_points?select=id,payload,updated_at&limit=10000',{headers:{'Accept':'application/json'}});
+   var remote=await geoRequest('murb_geo_points?select=id,payload,updated_at&limit=10000',{headers:{'Accept':'application/json'}},owner);
+   checkOwner();
    if(remote===null){geoStatus('Entre no MURB Connect para sincronizar os pontos.');return}
    if(!Array.isArray(remote))throw Error('Resposta inesperada do Supabase');
    var byId=new Map(records.map(function(r){return [String(r.id),r]}));
@@ -5976,7 +5981,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
     if(!local)continue;
     if(cloud&&stamp(cloud)>stamp(local)){
      // A remote edit won the race. Keep the local copy in storage for manual recovery.
-     try{localStorage.setItem('murbx_geo_conflict_'+id,JSON.stringify(local))}catch(e){}
+     try{localStorage.setItem('murbx_geo_conflict_'+owner+'_'+id,JSON.stringify(local));localStorage.setItem(geoDirtyKey,JSON.stringify(dirtyIds().filter(function(x){return String(x)!==id})));}catch(e){continue}
      continue;
     }
     toUpload.push({id:String(id),payload:local,updated_at:local.updatedAt||new Date().toISOString()});
@@ -5984,14 +5989,18 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
    if(toUpload.length){
     for(var i=0;i<toUpload.length;i+=20){
      var batch=toUpload.slice(i,i+20);
-     await geoRequest('murb_geo_points?on_conflict=id',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(batch)});
+     var result=await geoRequest('murb_geo_points?on_conflict=id',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(batch)},owner);
+     checkOwner();if(result===null)throw Error('Sessão indisponível');
      // Clear only revisions actually sent, never newer edits made during the request.
      var sent=new Map(batch.map(function(x){return [x.id,x.updated_at]}));
      var remaining=dirtyIds().filter(function(id){var r=records.find(function(x){return String(x.id)===String(id)});return !sent.has(String(id))||(r&&r.updatedAt!==sent.get(String(id)))});
      localStorage.setItem(geoDirtyKey,JSON.stringify(remaining));
     }
-    remote=await geoRequest('murb_geo_points?select=id,payload,updated_at&limit=10000',{headers:{'Accept':'application/json'}});
+    remote=await geoRequest('murb_geo_points?select=id,payload,updated_at&limit=10000',{headers:{'Accept':'application/json'}},owner);
+   checkOwner();
    }
+   if(!Array.isArray(remote))throw Error('Resposta inesperada do Supabase');
+   load();byId=new Map(records.map(function(r){return [String(r.id),r]}));
    var outstanding=new Set(dirtyIds().map(String)),changed=false;
    remote.forEach(function(row){
     if(outstanding.has(String(row.id))||!row.payload)return;
@@ -6002,6 +6011,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
     }
    });
    if(changed){localStorage.setItem(storageKey,JSON.stringify(records));render()}
+
    geoSyncedOnce=true;geoStatus('Pontos sincronizados com Supabase · '+new Date().toLocaleTimeString('pt-BR'));
   }catch(e){geoStatus('Sincronização pendente: '+e.message);console.warn('MURB GEO sync:',e)}
   finally{geoSyncing=false}
@@ -6102,7 +6112,8 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   });
  }
  function km(a,b){var R=6371,p=Math.PI/180,dlat=(Number(a.lat)-Number(b.lat))*p,dlon=(Number(a.lon)-Number(b.lon))*p,x=Math.sin(dlat/2)**2+Math.cos(Number(a.lat)*p)*Math.cos(Number(b.lat)*p)*Math.sin(dlon/2)**2;return 2*R*Math.atan2(Math.sqrt(x),Math.sqrt(1-x))}
- async function lookup(query){var url='https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=br&q='+encodeURIComponent(query),r=await fetch(url,{headers:{'Accept':'application/json'}});if(!r.ok)throw Error('Serviço de mapas indisponível');return r.json()}
+ async function lookup(query){var url='https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&countrycodes=br&q='+encodeURIComponent(query),r=await fetch(url,{headers:{'Accept':'application/json'}},owner);
+   checkOwner();if(!r.ok)throw Error('Serviço de mapas indisponível');return r.json()}
  function cityOK(m,city){var a=m.address||{},actual=[a.city,a.town,a.municipality,a.village,a.county,m.display_name].filter(Boolean).map(norm);return actual.some(function(x){return x.includes(norm(city))})}
  function clearPreview(){if(previewMarker&&map){map.removeLayer(previewMarker)}previewMarker=null;pending=null;el('murbGeoConfirm').style.display='none';el('murbGeoCancel').style.display='none'}
  function validCoords(lat,lon){return Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=90&&Math.abs(lon)<=180}
