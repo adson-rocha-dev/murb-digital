@@ -53,3 +53,8 @@
 #murb-drive.md-sun footer button.md-active{background:#fff;color:#000}
 #murb-drive.md-sun footer button.md-active svg{color:#000}
 @media(max-width:360px){#murb-drive main{padding:10px}#murb-drive .md-module{padding:12px}#murb-drive .md-module strong{font-size:14px}#murb-drive .md-pending{padding:12px;gap:8px}}
+
+/* Menu Operação: Drive ao lado da Geolocalização. */
+body.murb-x-on #murb-x-tiles #md-launch{grid-column:auto!important;min-width:0;grid-template-columns:36px minmax(0,1fr);padding:12px;gap:8px;background:linear-gradient(120deg,#123d66,#28577c)}
+#md-launch strong{font-size:15px;overflow-wrap:anywhere}#md-launch i{height:36px}#md-launch .md-arrow{display:none}#md-launch .md-launch-meta{padding-top:6px}#md-launch .md-launch-meta span{display:none}
+@media(max-width:899px){body.murb-x-on #murb-x-home #murb-x-tiles .murb-x-tile[data-murb-mobile-geo="1"]{grid-column:auto!important;flex-direction:column!important;align-items:flex-start!important;min-height:168px!important}}

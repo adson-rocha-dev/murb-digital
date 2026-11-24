@@ -5941,6 +5941,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   localStorage.setItem(storageKey,JSON.stringify(records));
   markDirty(changed.map(function(r){return r.id}));
   scheduleGeoSync();
+  window.dispatchEvent(new Event('murb-geo-updated'));
  }
  function geoStatus(message){geoLastError=message;var target=el('murbGeoSyncStatus');if(target)target.textContent=message}
  function scheduleGeoSync(){clearTimeout(geoSyncTimer);geoSyncTimer=setTimeout(syncGeo,1200)}
@@ -5951,52 +5952,45 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
  async function geoRequest(path,options,owner){
   var session=await geoSession();if(!session||!session.access_token)throw Error('Sessão Supabase indisponível');
   if(!owner||String(session.user&&session.user.id)!==owner||window.murbAccountCurrent()!==owner)throw Error('Sessão alterada');
-  var opts=options||{},controller=new AbortController(),timeout=setTimeout(function(){controller.abort()},12000);
+  var opts=options||{},controller=new AbortController(),timeout=setTimeout(function(){controller.abort()},15000);
   var headers=Object.assign({'apikey':'sb_publishable_2LJ2dCsQfWx4afxc8SGX7g_AIK9zqZb','Authorization':'Bearer '+session.access_token},opts.headers||{});
-  try{
-   var response=await fetch('https://cowddlbzohpxpteaitph.supabase.co/rest/v1/'+path,Object.assign({},opts,{headers:headers,signal:controller.signal,cache:'no-store'}));
-   if(!response.ok){var body=await response.text();throw Error('HTTP '+response.status+' '+body.slice(0,180))}
-   return response.status===204?[]:await response.json();
+  try{var response=await fetch('https://cowddlbzohpxpteaitph.supabase.co/storage/v1/'+path,Object.assign({},opts,{headers:headers,signal:controller.signal,cache:'no-store'}));
+   if(!response.ok)throw Error('HTTP '+response.status+' '+(await response.text()).slice(0,160));return await response.json();
   }finally{clearTimeout(timeout)}
  }
- function stamp(row){var n=Date.parse(row&&row.updatedAt||row&&row.updated_at||'');return Number.isFinite(n)?n:0}
+ var geoCache=new Map(),geoCacheOwner=null;
  async function syncGeo(){
   if(geoSyncing||!navigator.onLine)return;
   var owner=window.murbAccountCurrent();if(!owner){geoStatus('Geolocalização: entre no MURB Connect.');return}
   function checkOwner(){if(window.murbAccountCurrent()!==owner)throw Error('Sessão alterada')}
-  async function readCloud(){
-   var all=[],offset=0;
-   while(true){var page=await geoRequest('murb_geo_points?select=id,payload,updated_at&order=id.asc&limit=100&offset='+offset,{},owner);checkOwner();if(!Array.isArray(page))throw Error('Sessão ou resposta indisponível');all.push(...page);if(page.length<100)return all;offset+=page.length;}
-  }
-  function mergeCloud(remote){
-   load();var outstanding=new Set(dirtyIds().map(String)),byId=new Map(records.map(r=>[String(r.id),r])),changed=false;
-   remote.forEach(function(row){if(!row.payload||outstanding.has(String(row.id)))return;var next=Object.assign({},row.payload,{id:String(row.id)}),old=byId.get(String(row.id));if(!old){records.push(next);changed=true}else if(JSON.stringify(old)!==JSON.stringify(next)){Object.assign(old,next);changed=true}});
-   if(changed){localStorage.setItem(storageKey,JSON.stringify(records));render();window.dispatchEvent(new Event('murb-geo-updated'));}
-  }
+  var prefix=owner+'/geo-points-v3/',path=encodeURIComponent(owner)+'/geo-points-v3/';
+  if(geoCacheOwner!==owner){geoCache.clear();geoCacheOwner=owner}
   geoSyncing=true;
   try{
-   var remote=await readCloud();load();var remoteById=new Map(remote.map(r=>[String(r.id),r]));
-   markDirty(records.filter(r=>!remoteById.has(String(r.id))).map(r=>r.id));
-   // Receive independent of upload failures; preserve unsent local edits.
-   mergeCloud(remote);
-   var errors=[];
-   for(var id of dirtyIds().map(String)){
-    checkOwner();load();var local=records.find(r=>String(r.id)===id);if(!local)continue;
-    var cloud=remoteById.get(id),revision=JSON.stringify(local);
-    if(cloud&&stamp(cloud)>stamp(local)){
-     localStorage.setItem('murbx_geo_conflict_'+owner+'_'+id,revision);
-     localStorage.setItem(geoDirtyKey,JSON.stringify(dirtyIds().filter(x=>String(x)!==id)));continue;
-    }
-    try{
-     var result=await geoRequest('murb_geo_points?on_conflict=id',{method:'POST',headers:{'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'},body:JSON.stringify([{id:id,payload:local,updated_at:local.updatedAt||new Date().toISOString()}])},owner);
-     checkOwner();if(!Array.isArray(result)||!result.some(r=>String(r.id)===id))throw Error('Envio não confirmado');
-     load();var current=records.find(r=>String(r.id)===id);if(JSON.stringify(current)===revision)localStorage.setItem(geoDirtyKey,JSON.stringify(dirtyIds().filter(x=>String(x)!==id)));
-    }catch(e){checkOwner();errors.push(e.message)}
+   var latest=new Map(),offset=0;
+   while(true){var page=await geoRequest('object/list/murb-johnson',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix:prefix,limit:100,offset:offset,sortBy:{column:'name',order:'asc'}})},owner);checkOwner();if(!Array.isArray(page))throw Error('Listagem inválida');
+    for(var f of page){var m=/^([a-zA-Z0-9_-]+)~(\d{13})~([a-z0-9]+)\.json$/.exec(f.name);if(!m)continue;var prev=latest.get(m[1]);if(!prev||f.name>prev.name)latest.set(m[1],f)}
+    if(page.length<100)break;offset+=page.length;
    }
-   remote=await readCloud();mergeCloud(remote);
-   geoSyncedOnce=true;geoStatus(errors.length?'Geolocalização: recebimento OK; envio pendente: '+errors[0]:'Pontos sincronizados · '+remote.length+' na nuvem · '+new Date().toLocaleTimeString('pt-BR'));
-  }catch(e){geoStatus('Geolocalização pendente: '+e.message);console.warn('MURB GEO sync:',e)}
-  finally{geoSyncing=false}
+   var remote=new Map();
+   for(var [key,file] of latest){var item=geoCache.get(file.name);if(!item){item=await geoRequest('object/authenticated/murb-johnson/'+path+encodeURIComponent(file.name),{},owner);checkOwner();geoCache.set(file.name,item)}if(item&&item.id!=null)remote.set(String(item.id),item)}
+   geoCache=new Map(Array.from(latest.values()).filter(f=>geoCache.has(f.name)).map(f=>[f.name,geoCache.get(f.name)]));
+   load();var outstanding=new Set(dirtyIds().map(String)),byId=new Map(records.map(r=>[String(r.id),r])),changed=false;
+   remote.forEach(function(next,id){if(outstanding.has(id))return;var old=byId.get(id);if(!old){records.push(next);changed=true}else if(JSON.stringify(old)!==JSON.stringify(next)){Object.assign(old,next);changed=true}});
+   if(changed){localStorage.setItem(storageKey,JSON.stringify(records));render();window.dispatchEvent(new Event('murb-geo-updated'))}
+   markDirty(records.filter(r=>!remote.has(String(r.id))).map(r=>r.id));
+   var errors=[];
+   for(var id of dirtyIds().map(String)){checkOwner();load();var local=records.find(r=>String(r.id)===id);if(!local)continue;
+    var revision=JSON.stringify(local),cloud=remote.get(id);
+    // Append immutable revisions; a removal is an inactive record, not a lost row.
+    var stamp=Math.max(Date.now(),(Date.parse(cloud&&cloud.updatedAt)||0)+1,(Date.parse(local.updatedAt)||0)+1);
+    var payload=Object.assign({},local,{updatedAt:new Date(stamp).toISOString()});
+    var key=Array.from(new TextEncoder().encode(id),b=>b.toString(16).padStart(2,'0')).join('');
+    var name=key+'~'+String(stamp).padStart(13,'0')+'~'+Math.random().toString(36).slice(2)+'.json';
+    try{await geoRequest('object/murb-johnson/'+path+encodeURIComponent(name),{method:'POST',headers:{'Content-Type':'application/json','x-upsert':'false'},body:JSON.stringify(payload)},owner);checkOwner();load();var current=records.find(r=>String(r.id)===id);if(JSON.stringify(current)===revision){Object.assign(current,payload);localStorage.setItem(storageKey,JSON.stringify(records));localStorage.setItem(geoDirtyKey,JSON.stringify(dirtyIds().filter(x=>String(x)!==id)));}remote.set(id,payload)}catch(e){checkOwner();errors.push(e.message)}
+   }
+   geoStatus(errors.length?'Geolocalização: envio pendente · '+errors[0]:'Pontos sincronizados · '+Array.from(remote.values()).filter(r=>r.active!==false).length+' ativos na nuvem · '+new Date().toLocaleTimeString('pt-BR'));
+  }catch(e){geoStatus('Geolocalização pendente: '+e.message);console.warn('MURB GEO sync:',e)}finally{geoSyncing=false}
  }
 
  function leaflet(){
@@ -6017,6 +6011,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   var rows=['Status: '+murbServiceLabel(pointService(r)),'Fiscal: '+(r.fiscal||'Não informado'),[r.street,r.neighborhood,r.zip].filter(Boolean).join(' • '),[r.date,r.time].filter(Boolean).join(' '),r.source==='gps'?'GPS • precisão estimada '+Math.round(r.accuracy||0)+' m':(r.source==='coordenadas-manuais'?'Coordenadas informadas manualmente':'')];
   rows.forEach(function(v){if(v){var p=document.createElement('div');safeText(p,v);box.appendChild(p)}});
   if(r.photo){var img=document.createElement('img');img.src=r.photo;img.alt='Fotografia do registro';img.title='Toque para ampliar a fotografia';img.addEventListener('click',function(){var overlay=document.createElement('div');overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;background:#000e;display:flex;align-items:center;justify-content:center;padding:20px;cursor:zoom-out';var large=document.createElement('img');large.src=r.photo;large.alt='Fotografia ampliada';large.style.cssText='max-width:96vw;max-height:92vh;object-fit:contain';overlay.appendChild(large);overlay.addEventListener('click',function(){overlay.remove()});document.body.appendChild(overlay)});box.appendChild(img)}
+  var del=document.createElement('button');del.type='button';del.className='geo-danger';del.textContent='Excluir ponto do mapa';del.onclick=function(){togglePoint(r.id)};box.appendChild(del);
   return box;
  }
  function draw(){
@@ -6036,6 +6031,12 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   var marker=markerById.get(String(r.id));if(marker)marker.openPopup();
   el('murbGeoMap').scrollIntoView({behavior:'smooth',block:'center'});
  }
+ function togglePoint(id){
+  load();var r=records.find(x=>String(x.id)===String(id));if(!r)return;
+  if(r.active!==false&&!confirm('Excluir o ponto do mapa? A equipe e as fotografias serão preservadas.'))return;
+  r.active=r.active===false;r.updatedAt=new Date().toISOString();
+  try{persist();render();note(r.active?'Ponto restaurado. Aguardando sincronização.':'Ponto removido. Aguardando sincronização.');syncGeo()}catch(e){load();render();note('Não foi possível salvar: '+e.message)}
+ }
  function render(){
   var root=el('murbGeoRecords');root.replaceChildren();
   if(!records.length){root.textContent='Nenhuma localização registrada neste navegador.';draw();return}
@@ -6045,12 +6046,8 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
    var detail=document.createElement('p');detail.className='geo-muted';safeText(detail,[r.street,r.neighborhood,r.zip,r.date,r.time].filter(Boolean).join(' • '));info.appendChild(detail);
    var state=document.createElement('small');safeText(state,r.active===false?'Removido do mapa':'● No mapa');state.style.color=r.active===false?'#798b98':'#198c57';info.appendChild(state);
    var view=document.createElement('button');view.type='button';view.textContent='Ver no mapa';view.disabled=r.active===false;view.onclick=function(){focus(r)};buttons.appendChild(view);
-   var toggle=document.createElement('button');toggle.type='button';toggle.className=r.active===false?'':'geo-danger';toggle.textContent=r.active===false?'Restaurar':'Remover do mapa';
-   toggle.onclick=function(){
-    if(r.active!==false&&!confirm('Remover o ponto de '+(r.team||'esta equipe')+' do mapa? O histórico será preservado.'))return;
-    var was=r.active;r.active=r.active===false;r.updatedAt=new Date().toISOString();
-    try{persist();render();note(r.active?'Ponto restaurado no mapa.':'Ponto removido do mapa.')}catch(e){r.active=was;note('Não foi possível salvar a alteração: '+e.message)}
-   };
+   var toggle=document.createElement('button');toggle.type='button';toggle.className=r.active===false?'':'geo-danger';toggle.textContent=r.active===false?'Restaurar':'Excluir ponto do mapa';
+   toggle.onclick=function(){togglePoint(r.id)};
    buttons.appendChild(toggle);article.append(info,buttons);root.appendChild(article);
   });
   draw();
