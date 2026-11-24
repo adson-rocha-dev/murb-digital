@@ -5969,7 +5969,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
   try{
    var latest=new Map(),offset=0;
    while(true){var page=await geoRequest('object/list/murb-johnson',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prefix:prefix,limit:100,offset:offset,sortBy:{column:'name',order:'asc'}})},owner);checkOwner();if(!Array.isArray(page))throw Error('Listagem inválida');
-    for(var f of page){var m=/^([a-zA-Z0-9_-]+)~(\d{13})~([a-z0-9]+)\.json$/.exec(f.name);if(!m)continue;var prev=latest.get(m[1]);if(!prev||f.name>prev.name)latest.set(m[1],f)}
+    for(var f of page){var m=/^([a-f0-9]+)[~_](\d{13})[~_]([a-z0-9]+)\.json$/.exec(f.name);if(!m)continue;var prev=latest.get(m[1]);if(!prev||m[2]>prev.name.match(/[~_](\d{13})[~_]/)[1]||(m[2]===prev.name.match(/[~_](\d{13})[~_]/)[1]&&f.name>prev.name))latest.set(m[1],f)}
     if(page.length<100)break;offset+=page.length;
    }
    var remote=new Map();
@@ -5986,7 +5986,7 @@ html body #dashboard.section #dashboardOrdersToday #murbDashOrdersList .murb-das
     var stamp=Math.max(Date.now(),(Date.parse(cloud&&cloud.updatedAt)||0)+1,(Date.parse(local.updatedAt)||0)+1);
     var payload=Object.assign({},local,{updatedAt:new Date(stamp).toISOString()});
     var key=Array.from(new TextEncoder().encode(id),b=>b.toString(16).padStart(2,'0')).join('');
-    var name=key+'~'+String(stamp).padStart(13,'0')+'~'+Math.random().toString(36).slice(2)+'.json';
+    var name=key+'_'+String(stamp).padStart(13,'0')+'_'+Math.random().toString(36).slice(2)+'.json';
     try{await geoRequest('object/murb-johnson/'+path+encodeURIComponent(name),{method:'POST',headers:{'Content-Type':'application/json','x-upsert':'false'},body:JSON.stringify(payload)},owner);checkOwner();load();var current=records.find(r=>String(r.id)===id);if(JSON.stringify(current)===revision){Object.assign(current,payload);localStorage.setItem(storageKey,JSON.stringify(records));localStorage.setItem(geoDirtyKey,JSON.stringify(dirtyIds().filter(x=>String(x)!==id)));}remote.set(id,payload)}catch(e){checkOwner();errors.push(e.message)}
    }
    geoStatus(errors.length?'Geolocalização: envio pendente · '+errors[0]:'Pontos sincronizados · '+Array.from(remote.values()).filter(r=>r.active!==false).length+' ativos na nuvem · '+new Date().toLocaleTimeString('pt-BR'));
