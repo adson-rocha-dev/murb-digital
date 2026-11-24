@@ -1,5 +1,0 @@
-V33 — LOCALIZAÇÃO ASSISTIDA GRATUITA
-Publique os arquivos da pasta CENTRAL_OPERACIONAL na hospedagem da Central. Não precisa alterar o Worker de mapas.
-Geolocalização > Links do painel > Atualizar pontos do dashboard.
-Para pontos sem coordenadas: Abrir link no Google Maps > Confirmar ponto manualmente > tocar no mapa > Confirmar e salvar ponto.
-A posição selecionada é salva no armazenamento local da programação; não sincroniza pontos no Supabase.
