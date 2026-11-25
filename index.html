@@ -1194,6 +1194,166 @@ body main.main > header.topbar #pageSub {color:#c9e0d9!important}
 .murb-service-toggle .service-orb{width:28px;height:28px;border:1px solid var(--service-color);border-radius:50%;display:grid;place-items:center}.service-orb:after{content:'';width:10px;height:10px;border-radius:50%;background:var(--service-color);box-shadow:0 0 7px var(--service-color)}
 .murb-service-toggle .service-copy{display:grid;gap:2px;min-width:0}.service-copy small{font-size:9px;letter-spacing:.06em;color:#70847e}.service-copy b{font-size:13px;overflow-wrap:normal}.service-repeat{color:#13856b;font-size:19px}.service-progress{grid-column:1/-1;display:flex;gap:4px}.service-progress i{flex:1;height:3px;border-radius:4px;background:#e6ecea}.service-progress i.on{background:var(--service-color)}
 </style>
+<style id="murbx-programacao-enterprise-v1166">
+/* MURB X Enterprise V11.6.6 — escopo exclusivo da Programação Diária no dashboard */
+#dashboardDailySchedule.murbx-programacao-enterprise{background:#f2f7f9!important;border:1px solid #d5e4e9!important;border-radius:22px!important;padding:16px!important;color:#17364a!important}
+#dashboardDailySchedule.murbx-programacao-enterprise>.panel-head{display:flex!important;flex-wrap:wrap;align-items:center;gap:12px;background:#105565!important;border:0!important;border-radius:17px!important;padding:20px!important;margin-bottom:14px!important;box-shadow:0 6px 14px #10556519}
+#dashboardDailySchedule.murbx-programacao-enterprise>.panel-head h2{color:#fff!important;font-size:clamp(22px,3vw,29px)!important;line-height:1.2!important;margin:0 0 5px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise>.panel-head .sub{color:#d5e9ec!important;font-size:13px!important;margin:0!important}
+#dashboardDailySchedule.murbx-programacao-enterprise>.panel-head .secondary{background:#e5f3ed!important;border:1px solid #c5e9d8!important;color:#08764d!important;border-radius:12px!important;font-weight:750!important;min-height:44px}
+#dashboardDailySchedule.murbx-programacao-enterprise>.form-grid{background:#fff;border:1px solid #d9e5e9;border-radius:15px;padding:14px;margin:0 0 12px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .field label{color:#17364a!important;font-weight:650!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .field input{background:#fff!important;color:#17364a!important;border:1px solid #cbdce2!important;border-radius:12px!important;min-height:46px}
+#dashboardDailySchedule.murbx-programacao-enterprise>.form-grid+div>button{background:#eaf2f4!important;border:1px solid #d6e3e7!important;border-radius:12px!important;color:#105565!important;font-weight:700!important;min-height:43px}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-kpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;margin:0 0 15px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-kpi{background:#e8f5ee!important;border:1px solid #d0e8dc!important;border-radius:14px!important;padding:14px!important;min-width:0!important;display:flex!important;flex-direction:column!important;gap:7px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-kpi span{color:#366e67!important;font-size:12px!important;font-weight:600!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-kpi strong{color:#105565!important;font-size:29px!important;line-height:1.1!important}
+#dashboardDailySchedule.murbx-programacao-enterprise #murbBulkPrograms{background:#fff!important;border:1px solid #d3e2e7!important;border-radius:17px!important;padding:0!important;overflow:hidden!important;margin:0 0 16px!important;color:#17364a!important}
+#dashboardDailySchedule.murbx-programacao-enterprise #murbBulkPrograms>summary{background:#105565!important;color:#fff!important;padding:15px 17px!important;font-size:17px!important;font-weight:750!important;list-style-position:inside}
+#dashboardDailySchedule.murbx-programacao-enterprise #murbBulkPrograms>div{padding:15px!important;margin-top:0!important;grid-template-columns:1fr!important}
+#dashboardDailySchedule.murbx-programacao-enterprise #murbBulkPrograms label{color:#17364a!important;font-weight:650!important}
+#dashboardDailySchedule.murbx-programacao-enterprise #murbBulkPrograms input,#dashboardDailySchedule.murbx-programacao-enterprise #murbBulkPrograms textarea{display:block;width:100%;box-sizing:border-box;background:#fff!important;color:#17364a!important;border:1px solid #cbdce2!important;border-radius:12px!important;padding:12px!important;margin-top:6px}
+#dashboardDailySchedule.murbx-programacao-enterprise #mbpLoad{background:#dff1f3!important;color:#105565!important;border:1px solid #bcdce0!important;border-radius:12px!important;font-weight:750!important;min-height:46px}
+#dashboardDailySchedule.murbx-programacao-enterprise #mbpApply:not(:disabled){background:#105565!important;color:#fff!important;border-radius:12px!important;min-height:46px}
+#dashboardDailySchedule.murbx-programacao-enterprise #mbpApply:disabled{background:#e9edef!important;color:#82929a!important;border-radius:12px!important;min-height:46px}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-card{background:#fff!important;border:1px solid #c9dce3!important;border-radius:18px!important;overflow:hidden!important;padding:0!important;min-width:0!important;box-shadow:0 4px 12px #1055650c!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 10px;align-items:center;background:#105565;color:#fff;padding:14px 16px}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-caption{font-size:10px;font-weight:750;letter-spacing:.04em}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head>.dp-dash-enterprise-caption{grid-column:1;color:#c6e4e6}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head h3{grid-column:1;grid-row:2;color:#fff!important;font-size:25px!important;line-height:1.15!important;margin:0!important;overflow-wrap:anywhere}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-service{grid-column:2;grid-row:2;max-width:150px;text-align:center;overflow-wrap:anywhere;color:#075f45;background:#e4f5eb;border-radius:30px;padding:7px 10px;font-size:10px;font-weight:800}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-date{grid-column:2;grid-row:1;color:#e4f0f1!important;font-size:11px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:15px 16px}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info>div{display:flex!important;flex-direction:column!important;gap:5px!important;min-width:0;border:0!important;margin:0!important;padding:0!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info>div span{color:#788b93!important;font-size:10px!important;font-weight:700!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info>div strong{color:#17364a!important;font-size:12px!important;overflow-wrap:anywhere}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-summary{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;background:#f0f7f6;padding:13px 15px}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-indicators>.dp-dash-enterprise-caption{display:block;color:#52747c;margin-bottom:8px}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics>div{background:#fff;border-radius:12px;display:flex;align-items:center;flex-direction:column;justify-content:center;gap:4px;padding:10px 3px;min-width:0}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics strong{color:#08764d;font-size:25px;line-height:1.1}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics>div:nth-child(2) strong{color:#105565}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics>div:nth-child(3) strong{color:#b87520}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics span{color:#52747c;font-size:10px;font-weight:750}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-service-control{margin:0!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-service-toggle{background:#fff!important;border:1px solid #d3e4e6!important;border-radius:12px!important;min-height:100px!important;color:#17364a!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-absence-actions{padding:10px 15px 0!important;margin:0!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-absence-actions button{background:#eaf2f4!important;color:#105565!important;border:1px solid #d3e3e6!important;border-radius:12px!important;font-weight:750!important;min-height:46px}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-program-actions{padding:10px 15px 15px!important;margin:0!important;display:flex!important;gap:8px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-program-edit{background:#105565!important;color:#fff!important;border:1px solid #105565!important;border-radius:12px!important;min-height:46px!important;font-weight:750!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-copy-program{background:#eaf2f4!important;color:#105565!important;border:1px solid #d3e3e6!important;border-radius:12px!important;min-height:46px!important}
+@media(max-width:800px){#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-grid{grid-template-columns:minmax(0,1fr)!important}#dashboardDailySchedule.murbx-programacao-enterprise .dp-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}#dashboardDailySchedule.murbx-programacao-enterprise>.panel-head{padding:16px!important}}
+@media(max-width:430px){#dashboardDailySchedule.murbx-programacao-enterprise{padding:10px!important}#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head{padding:12px!important}#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info{padding:12px!important;gap:10px}#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-service{max-width:120px;font-size:9px}#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head h3{font-size:22px!important}}
+</style>
+
+<style id="murbx-programacao-fidelidade-v1168">
+/* Ajuste isolado para reproduzir a referencia visual aprovada, sem alterar logica. */
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-card{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:0!important;background:#fff!important;border:1px solid #d3e0e4!important;border-radius:22px!important;box-shadow:0 6px 18px #17364a0b!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head{grid-column:1/-1!important;display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;grid-template-rows:auto auto!important;gap:5px 10px!important;align-items:center!important;background:#fff!important;color:#17364a!important;padding:23px 20px 19px!important;border-bottom:1px solid #e2e8e9!important;min-height:102px}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head>.dp-dash-enterprise-caption{grid-column:1!important;grid-row:1!important;color:#778991!important;padding-left:60px!important;font-size:12px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head h3{grid-column:1!important;grid-row:2!important;color:#17364a!important;font-size:30px!important;padding-left:60px!important;position:relative!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head h3:before{content:'♧';position:absolute;left:0;top:-24px;width:49px;height:55px;border-radius:15px;background:#e7f4f3;color:#087e83;display:flex;align-items:center;justify-content:center;font-size:31px;font-weight:400}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-service{grid-column:2!important;grid-row:1/3!important;background:#e8f5ed!important;color:#08764d!important;border-radius:24px!important;font-size:11px!important;max-width:145px!important;padding:9px 12px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head .dp-dash-date{display:none!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info{grid-column:1/-1!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:24px 16px!important;padding:23px 20px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info>div span{font-size:11px!important;color:#7b8b92!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info>div strong{font-size:14px!important;color:#17364a!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-summary{grid-column:1/-1!important;background:#eff6f6!important;grid-template-columns:minmax(0,1fr)!important;padding:16px 20px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics{gap:10px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics>div{min-height:90px!important;border-radius:17px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics strong{font-size:30px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-service-control{margin:12px 0 0!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-absence-actions{grid-column:1!important;grid-row:auto!important;padding:15px 5px 20px 20px!important;display:flex!important;align-items:stretch!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-absence-actions button{width:100%!important;background:#eaf3f5!important;color:#105565!important;border:0!important;min-height:70px!important;font-size:16px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-program-actions{grid-column:2!important;grid-row:auto!important;padding:15px 20px 20px 5px!important;display:flex!important;gap:8px!important;align-items:stretch!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-program-edit{flex:1!important;min-width:0!important;min-height:70px!important;font-size:15px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-copy-program{flex:0 0 40px!important;min-width:40px!important;min-height:70px!important}
+@media(max-width:430px){
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head{padding:18px 13px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head>.dp-dash-enterprise-caption{font-size:10px!important;padding-left:50px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head h3{font-size:26px!important;padding-left:50px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head h3:before{width:40px;height:47px;top:-20px;font-size:25px}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-service{font-size:9px!important;max-width:112px!important;padding:7px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info{padding:17px 13px!important;gap:20px 9px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info>div strong{font-size:12px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-summary{padding:12px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-absence-actions{padding:12px 4px 15px 12px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-program-actions{padding:12px 12px 15px 4px!important;gap:5px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-program-edit{font-size:12px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-copy-program{flex-basis:30px!important;min-width:30px!important}
+}
+</style>
+<style id="murbx-programacao-copiar-v1169">
+/* Correcao pontual aprovada: Copiar no topo; dois botoes inferiores com largura integral. */
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head{grid-template-columns:minmax(0,1fr) auto 38px!important;column-gap:8px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head>.dp-dash-enterprise-caption{grid-column:1!important;grid-row:1!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head h3{grid-column:1!important;grid-row:2!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head .dp-dash-enterprise-service{grid-column:2!important;grid-row:1/3!important;min-width:0!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head .murb-copy-program{grid-column:3!important;grid-row:1/3!important;display:grid!important;place-items:center!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;padding:7px!important;flex:none!important;background:#edf5f6!important;color:#105565!important;border:1px solid #d3e3e6!important;border-radius:10px!important;cursor:pointer!important;box-sizing:border-box!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-program-actions{gap:0!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-program-edit{width:100%!important;flex:1 1 auto!important}
+@media(max-width:430px){#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head{grid-template-columns:minmax(0,1fr) auto 34px!important;column-gap:5px!important}#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head .murb-copy-program{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;padding:6px!important}#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-service{max-width:100px!important}}
+</style>
+<style id="murbx-mobile-compact-v11610">
+/* Ajuste APENAS mobile: compactar blocos da programacao; nao altera dados nem eventos. */
+@media (max-width:600px){
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-card{border-radius:15px!important;box-shadow:0 3px 10px #17364a0b!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head{padding:11px 10px!important;min-height:0!important;gap:3px 6px!important;grid-template-columns:minmax(0,1fr) minmax(0,auto) 36px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head>.dp-dash-enterprise-caption{font-size:9px!important;padding-left:37px!important;letter-spacing:.02em!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head h3{font-size:21px!important;line-height:1.1!important;padding-left:37px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head h3:before{width:31px!important;height:36px!important;top:-17px!important;border-radius:9px!important;font-size:19px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-service{max-width:112px!important;font-size:9px!important;padding:6px 7px!important;line-height:1.15!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head .murb-copy-program{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;padding:7px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info{padding:11px 12px!important;gap:11px 9px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info>div{gap:2px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info>div span{font-size:9px!important;line-height:1.2!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-info>div strong{font-size:12px!important;line-height:1.3!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-summary{padding:9px 11px!important;gap:7px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-indicators>.dp-dash-enterprise-caption{font-size:9px!important;margin-bottom:5px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics{gap:6px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics>div{min-height:0!important;border-radius:10px!important;padding:7px 2px!important;gap:2px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics strong{font-size:22px!important;line-height:1.1!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-metrics span{font-size:9px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-service-control{margin:6px 0 0!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-service-toggle{min-height:57px!important;padding:7px 9px!important;border-radius:10px!important;gap:3px 7px!important;grid-template-columns:23px minmax(0,1fr) 15px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-service-toggle .service-orb{width:22px!important;height:22px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-service-toggle .service-orb:after{width:8px!important;height:8px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-service-toggle .service-copy small{font-size:9px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-service-toggle .service-copy b{font-size:12px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-service-toggle .service-repeat{font-size:16px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-absence-actions{padding:8px 4px 10px 11px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-program-actions{padding:8px 11px 10px 4px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .murb-absence-actions button,#dashboardDailySchedule.murbx-programacao-enterprise .murb-program-edit{min-height:42px!important;font-size:12px!important;border-radius:10px!important}
+}
+@media(max-width:360px){
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head{grid-template-columns:minmax(0,1fr) minmax(0,auto) 34px!important;column-gap:4px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-service{max-width:89px!important;font-size:8px!important}
+#dashboardDailySchedule.murbx-programacao-enterprise .dp-dash-enterprise-head .murb-copy-program{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}
+}
+</style>
+
+<style id="murb-v11611-equipe-mobile-compact">
+/* V11.6.11: exclusivamente janela Equipe no mobile */
+@media (max-width: 767px) {
+ #murbDashAbsenceDialog#murbDashAbsenceDialog { padding: 10px !important; align-items: center !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-panel { box-sizing: border-box !important; width: 100% !important; max-width: 520px !important; max-height: 75vh !important; max-height: 75dvh !important; padding: 12px !important; border-radius: 15px !important; overflow-y: auto !important; overscroll-behavior: contain; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-title { gap: 8px !important; margin: 0 !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-title strong { font-size: 16px !important; line-height: 1.25 !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-title button { min-width: 36px !important; min-height: 36px !important; padding: 5px 10px !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-panel > p { margin: 5px 0 9px !important; font-size: 13px !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-section { display: block !important; font-size: 13px !important; line-height: 1.3 !important; margin: 8px 0 !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-people { max-height: min(29dvh, 210px) !important; overflow-y: auto !important; gap: 5px !important; margin: 7px 0 10px !important; padding: 0 !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-people label { min-height: 39px !important; box-sizing: border-box !important; padding: 6px 9px !important; gap: 9px !important; border-radius: 8px !important; margin: 0 !important; font-size: 12px !important; line-height: 1.3 !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-people input { flex: 0 0 17px !important; width: 17px !important; height: 17px !important; margin: 0 !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-apply { min-height: 43px !important; padding: 9px 12px !important; margin: 5px 0 9px !important; font-size: 13px !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-missing { max-height: 95px !important; overflow-y: auto !important; margin: 4px 0 8px !important; font-size: 12px !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-missing-row { padding: 5px 7px !important; gap: 6px !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-footer { margin-top: 8px !important; }
+ #murbDashAbsenceDialog#murbDashAbsenceDialog .murb-absence-footer button { min-height: 38px !important; padding: 7px 12px !important; font-size: 13px !important; }
+}
+</style>
 </head>
 <body>
 <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Abrir menu" onclick="toggleMobileMenu()">☰</button><div class="mobile-menu-scrim" id="mobileMenuScrim" onclick="closeMobileMenu()"></div><div class="layout">
@@ -1264,9 +1424,9 @@ body main.main > header.topbar #pageSub {color:#c9e0d9!important}
   <div class="stat murb-activity-stat" aria-label="Status atual das movimentações"><div class="murb-activity-head"><div><div class="label">◉ Status atual</div><div class="murb-activity-sub">Últimas movimentações do sistema</div></div><span class="murb-activity-live">● REGISTROS</span></div><div id="murbActivityFeed" class="murb-activity-feed" aria-live="polite"><div class="murb-activity-empty">Nenhuma movimentação registrada nesta versão ainda.</div></div></div>
   <div class="stat stat-clock" aria-label="Relógio e data atual"><div class="label"><span aria-hidden="true">◷</span> Data e hora</div><div class="value" id="murbClockTime" style="font-variant-numeric:tabular-nums;font-size:clamp(22px,2.2vw,32px);letter-spacing:.02em">--:--:--</div><div class="hint" id="murbClockDate">Carregando data...</div></div>
  </div>
- <div class="panel" id="dashboardDailySchedule">
+ <div class="panel murbx-programacao-enterprise" id="dashboardDailySchedule">
 
-  <div class="panel-head"><div><h2>📅 Programação diária de todas as equipes</h2><p class="sub">Acompanhe as equipes programadas, local de serviço, bairro e responsável.</p></div><button class="secondary" onclick="showView('dailyProgramming')">Abrir programação →</button></div>
+
   <div class="form-grid" style="margin:10px 0 14px">
    <div class="field"><label for="dashProgramDate">Consultar data</label><input type="date" id="dashProgramDate"></div>
    <div class="field"><label for="dashProgramSearch">Buscar equipe, local ou bairro</label><input id="dashProgramSearch" placeholder="Pesquisar programação"></div>
@@ -4013,16 +4173,18 @@ function dashProgramRender(){
   '<div class="dp-kpi"><span>Bairros atendidos</span><strong>'+new Set(items.map(x=>x.bairro).filter(Boolean)).size+'</strong></div></div>';
  host.innerHTML=items.length?items.map(x=>
   '<article class="dp-dash-card"'+murbServiceCardAttrs(x)+'>'+
-   '<div class="dp-dash-head"><span class="dp-dash-tag">EQUIPE</span><span class="dp-dash-date">'+esc(murbDataBR(x.date))+'</span></div>'+
-   '<h3>'+esc(x.teamName)+'</h3>'+
-   '<div class="dp-dash-lead">Fiscal / responsável: <strong>'+esc(x.responsavel)+'</strong></div>'+
-   '<div class="dp-dash-place"><span>📍 Local</span><strong>'+esc(x.local||'Não informado')+'</strong></div>'+
-   '<div class="dp-dash-place"><span>🏘 Bairro</span><strong>'+esc(x.bairro||'Não informado')+'</strong></div>'+
-   '<div class="dp-dash-bottom"><div class="dp-dash-active"><strong>'+x.active+'</strong><span>ATIVOS</span></div>'+
-   '<div class="dp-dash-totals"><span>Efetivo: <b>'+x.total+'</b></span><span>Faltas: <b>'+x.absent+'</b></span></div></div>'+
-   (x.service?'<div class="dp-dash-service">'+esc(x.service)+'</div>':'')+murbServiceControls(x)+
+   '<div class="dp-dash-enterprise-head"><span class="dp-dash-enterprise-caption">EQUIPE OPERACIONAL</span><h3>'+esc(x.teamName)+'</h3>'+
+   '<span class="dp-dash-enterprise-service">'+esc(x.service||((data.teams||[]).find(t=>String(t.id)===String(x.teamId))||{}).serviceType||'Não informado')+'</span>'+
+   '<span class="dp-dash-date">'+esc(murbDataBR(x.date))+'</span>'+
+   '<button type="button" class="murb-copy-program" title="Copiar programação desta equipe" aria-label="Copiar programação desta equipe" onclick="murbCopyDashProgram('+JSON.stringify(String(x.id)).replace(/"/g,'&quot;')+')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button></div>'+
+   '<div class="dp-dash-enterprise-info"><div class="dp-dash-lead"><span>FISCAL / RESPONSÁVEL</span><strong>'+esc(x.responsavel)+'</strong></div>'+
+   '<div class="dp-dash-info-date"><span>DATA</span><strong>'+esc(murbDataBR(x.date))+'</strong></div>'+
+   '<div class="dp-dash-place"><span>LOCAL DE TRABALHO</span><strong>'+esc(x.local||'Não informado')+'</strong></div>'+
+   '<div class="dp-dash-place"><span>BAIRRO</span><strong>'+esc(x.bairro||'Não informado')+'</strong></div></div>'+
+   '<div class="dp-dash-enterprise-summary"><div class="dp-dash-enterprise-indicators"><span class="dp-dash-enterprise-caption">INDICADORES DE EFETIVO</span><div class="dp-dash-enterprise-metrics">'+
+   '<div><strong>'+x.total+'</strong><span>ATIVOS</span></div><div><strong>'+x.active+'</strong><span>PRESENTES</span></div><div><strong>'+x.absent+'</strong><span>FALTAS</span></div></div></div>'+murbServiceControls(x)+'</div>'+
    (!x.isExternal?'<div class="murb-absence-actions"><button type="button" onclick="murbDashAbsenceOpen('+JSON.stringify(String(x.id)).replace(/"/g,'&quot;')+')">Equipe</button></div>':'')+
-   '<div class="murb-program-actions"><button type="button" class="murb-program-edit" onclick="murbDashProgramOpen('+JSON.stringify(String(x.id)).replace(/"/g,'&quot;')+')">▦ Programações</button><button type="button" class="murb-copy-program" title="Copiar programação desta equipe" aria-label="Copiar programação desta equipe" onclick="murbCopyDashProgram('+JSON.stringify(String(x.id)).replace(/"/g,'&quot;')+')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button></div>'+
+   '<div class="murb-program-actions"><button type="button" class="murb-program-edit" onclick="murbDashProgramOpen('+JSON.stringify(String(x.id)).replace(/"/g,'&quot;')+')">▦ Programações</button></div>'+
   '</article>'
  ).join(''):'<div class="dp-dash-empty">Nenhuma equipe programada para esta data. Cadastre as programações no menu <b>Programação diária</b> ou consulte outra data.</div>';
 }
