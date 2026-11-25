@@ -1470,6 +1470,15 @@ body.murb-x-on #murb-x-home .ml-card-top b{display:block;max-width:100%;font-siz
 body.murb-x-on #murb-x-home .ml-card-top .ml-state{display:inline-flex;align-items:center;max-width:100%;min-width:0;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;line-height:1.3;font-size:11px;font-weight:600;}
 body.murb-x-on #murb-x-home .ml-local,body.murb-x-on #murb-x-home .ml-bairro{max-width:100%;overflow-wrap:anywhere;}
 </style>
+<style id="murb-program-menu-discreto-v11623">
+/* Somente menu de acoes da janela Programacoes. */
+#murbDashProgramDialog .murb-prog-title-tools{display:inline-flex;align-items:center;gap:6px;margin-left:auto}
+#murbDashProgramDialog .murb-prog-title-tools button{width:36px;min-width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0;font-size:21px;line-height:1}
+#murbDashProgramDialog .murb-prog-more{font-size:23px!important;font-weight:700!important}
+#murbDashProgramDialog .murb-prog-menu{padding:7px 14px;text-align:right;background:#f3f7f4;border-bottom:1px solid #d8e4dc}
+#murbDashProgramDialog .murb-prog-menu[hidden]{display:none!important}
+#murbDashProgramDialog .murb-prog-menu button{background:#fff!important;color:#9a3e42!important;-webkit-text-fill-color:#9a3e42!important;border:1px solid #e5c8c8!important;border-radius:9px;padding:9px 13px;font-size:13px;font-weight:650;min-height:40px}
+</style>
 </head>
 <body>
 <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Abrir menu" onclick="toggleMobileMenu()">☰</button><div class="mobile-menu-scrim" id="mobileMenuScrim" onclick="closeMobileMenu()"></div><div class="layout">
@@ -1876,7 +1885,7 @@ body.murb-x-on #murb-x-home .ml-local,body.murb-x-on #murb-x-home .ml-bairro{max
 <div class="field"><label for="empEnd">Data prevista de retorno (se afastado)</label><input id="empEnd" type="date"></div>
 <div class="field full"><label for="empNotes">Observações</label><textarea id="empNotes" rows="3" maxlength="1000" placeholder="Observações administrativas, sem incluir dados sensíveis desnecessários"></textarea></div>
 </div><div class="form-actions"><button type="button" class="light" onclick="closeModal('employeeModal')">Cancelar</button><button type="submit" class="primary">Salvar funcionário</button></div></form></div></div>
-<div class="modal-backdrop" id="teamModal"><div class="modal" style="max-width:520px"><h2 id="teamModalTitle">Nova equipe</h2><p class="sub">Cadastre uma equipe ou frente de serviço.</p><form id="teamForm"><input type="hidden" id="teamId"><div class="field"><label for="teamName">Nome da equipe *</label><input id="teamName" required maxlength="100" placeholder="Ex.: Equipe de Roçagem"></div><div class="field" style="margin-top:14px"><label for="teamLead">Responsável / fiscal</label><input id="teamLead" maxlength="100" placeholder="Nome do responsável"></div><div class="field" style="margin-top:14px"><label for="teamServiceType">Tipo de serviço</label><select id="teamServiceType"><option value="">Selecione o tipo de serviço</option><option>CAPINA</option><option>AJARDINAMENTO</option><option>PODA</option><option>BASE VARRIÇÃO</option><option>APRENDIZES VARRIÇÃO</option></select></div><div class="field" style="margin-top:14px"><label for="teamNotes">Descrição / observações</label><textarea id="teamNotes" rows="3" maxlength="500"></textarea></div><div class="form-actions"><button type="button" class="light" onclick="closeModal('teamModal')">Cancelar</button><button class="primary" type="submit">Salvar equipe</button></div></form></div></div>
+<div class="modal-backdrop" id="teamModal"><div class="modal" style="max-width:520px"><h2 id="teamModalTitle">Nova equipe</h2><p class="sub">Cadastre uma equipe ou frente de serviço.</p><form id="teamForm"><input type="hidden" id="teamId"><div class="field"><label for="teamName">Nome da equipe *</label><input id="teamName" required maxlength="100" placeholder="Ex.: Equipe de Roçagem"></div><div class="field" style="margin-top:14px"><label for="teamLead">Responsável / fiscal</label><input id="teamLead" maxlength="100" placeholder="Nome do responsável"></div><div class="field" style="margin-top:14px"><label for="teamServiceType">Tipo de serviço</label><select id="teamServiceType"><option value="">Selecione o tipo de serviço</option><option>CAPINA</option><option>AJARDINAMENTO</option><option>PODA</option><option>BASE VARRIÇÃO</option><option>APRENDIZES VARRIÇÃO</option><option>IGARAPÉ</option></select></div><div class="field" style="margin-top:14px"><label for="teamNotes">Descrição / observações</label><textarea id="teamNotes" rows="3" maxlength="500"></textarea></div><div class="form-actions"><button type="button" class="light" onclick="closeModal('teamModal')">Cancelar</button><button class="primary" type="submit">Salvar equipe</button></div></form></div></div>
 <div class="modal-backdrop" id="absenceEditModal"><div class="modal" style="max-width:620px"><h2>Editar ocorrência de falta</h2><p class="sub" id="absenceEditEmployee">Atualize os dados e a justificativa apresentada.</p><form id="absenceEditForm"><input type="hidden" id="absenceEditId"><div class="form-grid">
 <div class="field"><label for="absenceEditDate">Data da ocorrência *</label><input id="absenceEditDate" type="date" required></div>
 <div class="field"><label for="absenceEditType">Tipo da ocorrência</label><select id="absenceEditType"><option>Não justificada</option><option>Justificada</option><option>Meio período</option></select></div>
@@ -4419,6 +4428,18 @@ function dashProgramRender(){
   '</article>'
  ).join(''):'<div class="dp-dash-empty">Nenhuma equipe programada para esta data. Cadastre as programações no menu <b>Programação diária</b> ou consulte outra data.</div>';
 }
+/* Exclusão individual da programação existente; respeita o fluxo de persistência do MURB. */
+function murbDashProgramDelete(id){
+ const row=(data.dailySchedule||[]).find(x=>String(x.id)===String(id));
+ if(!row){toast('Programação não encontrada.');return;}
+ if(!confirm('Excluir a programação da equipe '+String(row.teamName||'')+' em '+murbDataBR(row.date)+'? Esta ação será sincronizada com a base.'))return;
+ const before=data.dailySchedule;
+ data.dailySchedule=before.filter(x=>String(x.id)!==String(id));
+ if(save()===false){data.dailySchedule=before;toast('Não foi possível salvar a exclusão.');return;}
+ dashProgramRender();
+ if(typeof dpRender==='function')dpRender();
+ toast('Programação excluída.');
+}
 /* Controle de faltas no dashboard: usa as coleções já existentes, sem segundo banco. */
 function murbDashAbsenceRow(rowId){return (data.dailySchedule||[]).find(x=>String(x.id)===String(rowId));}
 function murbDashAbsenceRecords(row){return (data.absences||[]).filter(a=>String(a.teamId)===String(row.teamId)&&a.date===row.date&&!['Abonada','Cancelada'].includes(String(a.status||'')));}
@@ -4486,8 +4507,21 @@ function murbDashProgramOpen(rowId){
  const host=document.getElementById('murbDashProgramDialog');if(!host)return;
  const next=new Date(String(row.date)+'T12:00:00');next.setDate(next.getDate()+1);const tomorrow=next.getFullYear()+'-'+String(next.getMonth()+1).padStart(2,'0')+'-'+String(next.getDate()).padStart(2,'0');
  host.dataset.rowId=String(row.id);host.dataset.teamId=String(row.teamId||'');host.dataset.external=row.isExternal?'1':'0';
- host.innerHTML='<div class="murb-absence-panel"><div class="murb-absence-title"><strong>Programações · '+esc(row.teamName)+'</strong><button type="button" onclick="murbDashProgramClose()" aria-label="Fechar">×</button></div><p>Fiscal: '+esc(row.responsavel||'Não informado')+'</p><label class="murb-program-field">Data da programação<input id="murbProgramDate" type="date" value="'+esc(row.date)+'" onchange="murbDashProgramLoad()"></label><div class="murb-program-shortcuts"><button type="button" onclick="murbDashProgramSetDate('+JSON.stringify(String(row.date)).replace(/"/g,'&quot;')+')">Data atual</button><button type="button" onclick="murbDashProgramSetDate('+JSON.stringify(tomorrow).replace(/"/g,'&quot;')+')">Dia seguinte</button></div><label class="murb-program-field">Local de trabalho<input id="murbProgramLocal" type="text"></label><label class="murb-program-field">Bairro<input id="murbProgramBairro" type="text"></label><div class="murb-absence-footer"><button type="button" onclick="murbDashProgramClose()">Cancelar</button><button type="button" onclick="murbDashProgramSave()">Salvar programação</button></div></div>';
+ host.innerHTML='<div class="murb-absence-panel"><div class="murb-absence-title"><strong>Programações · '+esc(row.teamName)+'</strong><span class="murb-prog-title-tools"><button type="button" class="murb-prog-more" aria-label="Mais opções da programação" aria-expanded="false" onclick="murbDashProgramToggleMenu(this)">⋮</button><button type="button" onclick="murbDashProgramClose()" aria-label="Fechar">×</button></span></div><div class="murb-prog-menu" hidden><button type="button" onclick="murbDashProgramDeleteFromDialog()">Excluir programação</button></div><p>Fiscal: '+esc(row.responsavel||'Não informado')+'</p><label class="murb-program-field">Data da programação<input id="murbProgramDate" type="date" value="'+esc(row.date)+'" onchange="murbDashProgramLoad()"></label><div class="murb-program-shortcuts"><button type="button" onclick="murbDashProgramSetDate('+JSON.stringify(String(row.date)).replace(/"/g,'&quot;')+')">Data atual</button><button type="button" onclick="murbDashProgramSetDate('+JSON.stringify(tomorrow).replace(/"/g,'&quot;')+')">Dia seguinte</button></div><label class="murb-program-field">Local de trabalho<input id="murbProgramLocal" type="text"></label><label class="murb-program-field">Bairro<input id="murbProgramBairro" type="text"></label><div class="murb-absence-footer"><button type="button" onclick="murbDashProgramClose()">Cancelar</button><button type="button" onclick="murbDashProgramSave()">Salvar programação</button></div></div>';
  host.hidden=false;murbDashProgramLoad();
+}
+function murbDashProgramToggleMenu(button){
+ const host=document.getElementById('murbDashProgramDialog');if(!host)return;
+ const menu=host.querySelector('.murb-prog-menu');if(!menu)return;
+ menu.hidden=!menu.hidden;button.setAttribute('aria-expanded',String(!menu.hidden));
+}
+function murbDashProgramDeleteFromDialog(){
+ const host=document.getElementById('murbDashProgramDialog');if(!host)return;
+ const id=host.dataset.rowId;if(!id)return;
+ const exists=(data.dailySchedule||[]).some(x=>String(x.id)===String(id));
+ if(!exists){toast('Programação não encontrada.');return;}
+ murbDashProgramDelete(id);
+ if(!(data.dailySchedule||[]).some(x=>String(x.id)===String(id)))murbDashProgramClose();
 }
 function murbDashProgramClose(){const host=document.getElementById('murbDashProgramDialog');if(host){host.hidden=true;host.innerHTML='';}}
 function murbDashProgramSetDate(value){document.getElementById('murbProgramDate').value=value;murbDashProgramLoad();}
@@ -7151,3 +7185,8 @@ body.murb-x-on #murb-x-home #murb-x-tiles .murb-live-cta{display:block!important
 #teams > .panel:not(#missionPanel) > .panel-head .actions button:not(.primary){background:#edf5f5!important;color:#315e76!important;border-radius:12px!important}#teams > .panel:not(#missionPanel) > .panel-head .actions .primary{border-radius:12px!important}
 </style>
 </body></html>
+<style>
+#dashboardDailySchedule .murb-program-actions{display:flex;gap:8px;flex-wrap:wrap}
+#dashboardDailySchedule .murb-program-delete{background:#fff5f4;color:#a52727;border:1px solid #e7b8b3;border-radius:9px;padding:9px 12px;font-weight:700;cursor:pointer}
+#dashboardDailySchedule .murb-program-delete:hover{background:#ffe7e3}
+</style>
