@@ -263,6 +263,33 @@ async function murbAutoPull(){
  }catch(e){murbAutoWarning('Falha na consulta automática: '+e.message)}
  finally{murbAutoChecking=false;}
 }
+/* V1.6: consulta de integridade exclusivamente leitura, sem renovar sessão. */
+window.murbSystemHealth=async function(){
+ const rows=[]; const add=(label,value)=>rows.push([label,value]);
+ const read=k=>localStorage.getItem(k); const date=v=>v&&Number.isFinite(Date.parse(v))?new Date(v).toLocaleString('pt-BR'):'Não disponível';
+ add('Rede do dispositivo',navigator.onLine?'Disponível segundo navegador':'Offline');
+ add('Fila local',read(PENDING_KEY)?'Alterações pendentes (quantidade não disponível)':'Sem pendência registrada');
+ add('Sincronização',read(CONFLICT_KEY)?'Divergência bloqueante':read(AUTO_ERROR_KEY)?'Erro registrado':syncing?'Em andamento':read(PENDING_KEY)?'Pendente':'Sem alerta local registrado');
+ add('Última referência local de sincronização',date(read(LAST_SYNC_KEY))+' (envio ou recebimento)');
+ let saved=session; if(!saved){try{saved=JSON.parse(read(TOKEN_KEY)||sessionStorage.getItem(TOKEN_KEY)||'null')}catch{}}
+ let cloud='Não consultado',johnson='Não verificado',marco='Não verificado';
+ if(navigator.onLine&&saved?.access_token){
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),12000);
+  try{const u=await api('/auth/v1/user',{headers:apiHeaders(saved.access_token),signal:controller.signal});if(!u?.id)throw Error('Sessão inválida');cloud='Autenticação confirmada';
+   if(read(OWNER_KEY)&&read(OWNER_KEY)!==u.id){cloud+=' · conta diferente da referência local';}else{
+    const files=await api('/storage/v1/object/list/murb-johnson',{method:'POST',headers:apiHeaders(saved.access_token,{'Content-Type':'application/json'}),body:JSON.stringify({prefix:u.id+'/',limit:100,offset:0,sortBy:{column:'created_at',order:'desc'}}),signal:controller.signal});
+    if(!Array.isArray(files))throw Error('Listagem indisponível');
+    const latest=pattern=>{const f=files.find(x=>pattern.test(x.name||''));return f?date(f.created_at)+' · arquivo listado':files.length>=100?'Não localizado nos 100 primeiros':'Não localizado';};
+    johnson=latest(/^johnson(?:-auto)?-[\w.-]+\.json$/);marco=latest(/^marco-zero-[\w.-]+\.json$/);
+   }
+  }catch(e){if(cloud==='Não consultado')cloud='Consulta indisponível ou sessão inválida';}finally{clearTimeout(timer);}
+ }else cloud=navigator.onLine?'Aguardando login':'Offline';
+ add('Conexão MURB',cloud);add('Backup Johnson',johnson);add('Marco Zero',marco);
+ try{const q=await navigator.storage.estimate();add('Armazenamento da origem',Number.isFinite(q.usage)?(q.usage/1048576).toFixed(1)+' MB utilizados (estimativa)':'Não disponível');}catch{add('Armazenamento da origem','Não disponível');}
+ add('Modo offline',navigator.serviceWorker?.controller?'Service worker ativo (cache não testado)':'Service worker não controla esta página');
+ const n=performance.getEntriesByType('navigation')[0];add('Tempo de carregamento',n?.loadEventEnd>0?(n.loadEventEnd/1000).toFixed(2)+' s':'Não disponível');
+ return rows;
+};
 window.murbAutoSyncDiagnostic=function(){return {
  connected:navigator.onLine,pending:!!localStorage.getItem(PENDING_KEY),
  latestFile:localStorage.getItem(AUTO_FILE_KEY),
