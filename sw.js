@@ -1,6 +1,6 @@
 /* Offline Pro: cache atomico do aplicativo; nenhuma resposta de API. */
-const CACHE='murb-operacional-enterprise-v2-0-3-brand-offline';
-const FILES=['./index.html','./murb-excel-reconstruido.js','./murb-link.js','./murb-jszip.min.js','./murb_logo.jpg','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./modelos-originais/MURB_EQUIPES_ABAS_OFICIAL.xlsx','./modelos-originais/PONTO_DEZEMBRO_APROVADO.xlsx',...Array.from({length:7},(_,i)=>'./murb-folhas-dezembro/folha-'+String(i+1).padStart(2,'0')+'.png')];
+const CACHE='murb-operacional-enterprise-v2-0-4-icon-offline';
+const FILES=['./index.html','./murb-excel-reconstruido.js','./murb-link.js','./murb-jszip.min.js','./murb_logo.jpg','./manifest-enterprise-v204.webmanifest','./icons/enterprise-x-192-v204.png','./icons/enterprise-x-512-v204.png','./modelos-originais/MURB_EQUIPES_ABAS_OFICIAL.xlsx','./modelos-originais/PONTO_DEZEMBRO_APROVADO.xlsx',...Array.from({length:7},(_,i)=>'./murb-folhas-dezembro/folha-'+String(i+1).padStart(2,'0')+'.png')];
 const urls=FILES.map(f=>new URL(f,self.registration.scope).href);
 self.addEventListener('install',event=>event.waitUntil((async()=>{const c=await caches.open(CACHE);await c.addAll(urls.map(u=>new Request(u,{cache:'reload'})));await self.skipWaiting();})()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{await self.clients.claim();for(const k of await caches.keys())if(k.startsWith('murb-operacional-')&&k!==CACHE)await caches.delete(k);})()));

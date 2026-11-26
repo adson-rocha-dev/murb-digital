@@ -1,0 +1,25 @@
+{
+  "name": "MURB Enterprise",
+  "short_name": "MURB Enterprise",
+  "description": "MURB Enterprise — MURB Serviços",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101827",
+  "theme_color": "#003b2b",
+  "icons": [
+    {
+      "src": "./icons/enterprise-x-192-v204.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/enterprise-x-512-v204.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "./"
+}
