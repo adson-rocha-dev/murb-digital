@@ -6,6 +6,7 @@
 <title>Controle Operacional Murb Serviços</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
@@ -7341,4 +7342,9 @@ body.murb-x-on #murb-x-connect-menu #murb-connect-marco-feedback{order:7}
 </style>
 <script id="murb-connect-mobile-floating-events-v201">
 (function(){function init(){var menu=document.getElementById('murb-x-connect-menu'),btn=document.getElementById('murb-x-connect-toggle');if(!menu||!btn)return;var mobile=window.matchMedia('(max-width:899px)');var icons={'login':'↪','logout':'↩','performance':'◴','health':'◇','audit':'☷','marco-zero':'↻'};Object.keys(icons).forEach(function(k){var b=document.getElementById('murb-connect-'+k);if(b)b.setAttribute('data-mobile-icon',icons[k]);});new MutationObserver(function(){if(mobile.matches)btn.setAttribute('aria-expanded',String(!menu.hidden));}).observe(menu,{attributes:true,attributeFilter:['hidden']});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();
+</script>
+
+<style id="murb-offline-pro-style">#murb-offline-ready{grid-column:1/-1;display:block;padding:7px 9px;border-radius:8px;background:#edf4f6;color:#103b4c;font-size:11px;line-height:1.4}#murb-offline-ready[data-ready="true"]{background:#e5f3ee;color:#146c55}</style>
+<script id="murb-offline-pro-status">
+(function(){let timer;function check(){const menu=document.getElementById('murb-x-connect-menu');if(!menu)return;let el=document.getElementById('murb-offline-ready');if(!el){el=document.createElement('div');el.id='murb-offline-ready';el.setAttribute('role','status');menu.appendChild(el);}el.dataset.ready='false';el.textContent='Offline: preparação ainda não confirmada';const worker=navigator.serviceWorker?.controller;if(!worker)return;const ch=new MessageChannel();clearTimeout(timer);timer=setTimeout(()=>ch.port1.close(),4000);ch.port1.onmessage=e=>{clearTimeout(timer);ch.port1.close();if(e.data?.ready){el.dataset.ready='true';el.textContent=navigator.onLine?'Arquivos locais verificados · offline preparado':'Offline · arquivos locais disponíveis; envio aguardando rede';}};worker.postMessage({type:'MURB_OFFLINE_CHECK'},[ch.port2]);}function init(){check();setInterval(check,15000);window.addEventListener('online',check);window.addEventListener('offline',check);navigator.serviceWorker?.addEventListener('controllerchange',check);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();
 </script>

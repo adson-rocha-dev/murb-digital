@@ -1,13 +1,8 @@
-/* Cache local de arquivos estáticos. Não armazena respostas de API Supabase. */
-const CACHE='murb-operacional-enterprise-v2-0-1-floating';
-const FILES=['./','./index.html','./murb-excel-reconstruido.js','./murb-link.js','./murb-jszip.min.js','./murb_logo.jpg','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png',...Array.from({length:7},(_,i)=>'./murb-folhas-dezembro/folha-'+String(i+1).padStart(2,'0')+'.png')];
-self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(async c=>{await Promise.allSettled(FILES.map(f=>c.add(f)));}).then(()=>self.skipWaiting()));});
-self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('murb-operacional-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
-self.addEventListener('fetch',event=>{
- const req=event.request;
- if(req.method!=='GET'||new URL(req.url).origin!==self.location.origin)return;
- event.respondWith(fetch(req).then(response=>{
-  if(response.ok){const copy=response.clone();caches.open(CACHE).then(c=>c.put(req,copy)).catch(()=>{});}
-  return response;
- }).catch(()=>caches.match(req).then(cached=>cached||caches.match('./index.html'))));
-});
+/* Offline Pro: cache atomico do aplicativo; nenhuma resposta de API. */
+const CACHE='murb-operacional-enterprise-v2-0-3-brand-offline';
+const FILES=['./index.html','./murb-excel-reconstruido.js','./murb-link.js','./murb-jszip.min.js','./murb_logo.jpg','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./modelos-originais/MURB_EQUIPES_ABAS_OFICIAL.xlsx','./modelos-originais/PONTO_DEZEMBRO_APROVADO.xlsx',...Array.from({length:7},(_,i)=>'./murb-folhas-dezembro/folha-'+String(i+1).padStart(2,'0')+'.png')];
+const urls=FILES.map(f=>new URL(f,self.registration.scope).href);
+self.addEventListener('install',event=>event.waitUntil((async()=>{const c=await caches.open(CACHE);await c.addAll(urls.map(u=>new Request(u,{cache:'reload'})));await self.skipWaiting();})()));
+self.addEventListener('activate',event=>event.waitUntil((async()=>{await self.clients.claim();for(const k of await caches.keys())if(k.startsWith('murb-operacional-')&&k!==CACHE)await caches.delete(k);})()));
+self.addEventListener('fetch',event=>{const r=event.request,u=new URL(r.url);if(r.method!=='GET'||u.origin!==self.location.origin)return;const navigation=r.mode==='navigate'&&(u.pathname===new URL(self.registration.scope).pathname||u.pathname===new URL(urls[0]).pathname);if(!navigation&&!urls.includes(u.href))return;event.respondWith((async()=>{const c=await caches.open(CACHE);const hit=await c.match(navigation?urls[0]:u.href);return hit||fetch(r);})());});
+self.addEventListener('message',event=>{if(event.data?.type!=='MURB_OFFLINE_CHECK'||!event.ports[0])return;event.waitUntil((async()=>{try{const c=await caches.open(CACHE);const hits=await Promise.all(urls.map(u=>c.match(u)));event.ports[0].postMessage({ready:hits.every(r=>r&&r.ok),version:CACHE});}catch{event.ports[0].postMessage({ready:false});}})());});

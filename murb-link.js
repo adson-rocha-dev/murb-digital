@@ -41,7 +41,10 @@ function readStoredSession(){
  return null;
 }
 function clearStoredSession(){session=null;localStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem(TOKEN_KEY);window.dispatchEvent(new Event('murb-supabase-session-changed'));}
-window.murbHasSupabaseSession=async function(){return !!(await getSession());};
+window.murbHasSupabaseSession=async function(){
+ if(!navigator.onLine){const saved=readStoredSession();return !!(saved?.user?.id && window.murbAccountCurrent?.()===saved.user.id);}
+ return !!(await getSession());
+};
 window.murbGetSupabaseSession=getSession;
 async function getSession(){
  if(session&&session.expires_at>Date.now()/1000+90)return session;
@@ -1270,7 +1273,7 @@ function murbInstallSupabaseLoginForm(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',murbInstallSupabaseLoginForm);
 else murbInstallSupabaseLoginForm();
-window.murbSupabaseLogout=async function(){const s=await getSession();if(s)try{await api('/auth/v1/logout',{method:'POST',headers:apiHeaders(s.access_token)})}catch{}clearStoredSession();if(window.murbAccountSwitch)window.murbAccountSwitch(null);location.reload();};
+window.murbSupabaseLogout=async function(){const s=navigator.onLine?await getSession():null;if(s)try{await api('/auth/v1/logout',{method:'POST',headers:apiHeaders(s.access_token)})}catch{}clearStoredSession();if(window.murbAccountSwitch)window.murbAccountSwitch(null);location.reload();};
 // Visual status: green only after an authenticated request succeeds.
 let murbIndicatorBusy=false;
 async function murbRefreshConnectionIndicator(){
