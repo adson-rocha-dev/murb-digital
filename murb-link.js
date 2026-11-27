@@ -254,6 +254,7 @@ async function murbAutoPull(){
   if(old)localStorage.setItem('murb_auto_rollback_v35',old);
   const next={...data};
   if(Array.isArray(remote.serviceHistory))next.serviceHistory=remote.serviceHistory;
+  if(Array.isArray(remote.rankingTeamIds))next.rankingTeamIds=remote.rankingTeamIds;
   for(const k of Object.keys(data))if(Object.prototype.hasOwnProperty.call(remote,k))next[k]=remote[k];
   localStorage.setItem(KEY,JSON.stringify(next));
   data=next;
