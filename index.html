@@ -2824,7 +2824,7 @@ function murbExportEmployeesByTeamExcel(){
     alert('Exportação oficial indisponível: módulo Excel não foi inicializado. Verifique o Console do navegador.');
     return;
   }
-  return window.murbExportEmployeesByTeamExcelOfficial();
+  return window.murbExportEmployeesByTeamExcelOfficial({teams:data.teams,employees:data.employees});
 }
 function exportPrintAreaExcel(button){
  const action=button.dataset.printAction||'';

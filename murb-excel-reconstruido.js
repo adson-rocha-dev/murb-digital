@@ -21,10 +21,10 @@ function ensureCell(doc,ref){let c=cell(doc,ref);if(c)return c;
  return c;
 }
 function setCell(doc,ref,value){const c=ensureCell(doc,ref);while(c.firstChild)c.removeChild(c.firstChild);c.setAttribute('t','inlineStr');const is=doc.createElementNS(NS,'is'),t=doc.createElementNS(NS,'t');t.setAttribute('xml:space','preserve');t.textContent=String(value??'');is.appendChild(t);c.appendChild(is);}
-function readGroups(){
- if(typeof data==='undefined'||!Array.isArray(data.teams)||!Array.isArray(data.employees))throw Error('Cadastro de funcionários indisponível');
- const people=data.employees.filter(e=>normalized(e.status).toLowerCase()==='ativo');
- return data.teams.map(t=>({name:String(t.name||'').trim(),lead:String(t.lead||t.fiscal||t.supervisor||'Não informado'),people:people.filter(e=>String(e.teamId)===String(t.id)).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR')).map(e=>({name:String(e.name||''),role:String(e.role||'')}))})).filter(g=>g.name);
+function readGroups(source){
+ if(!source||!Array.isArray(source.teams)||!Array.isArray(source.employees))throw Error('Cadastro de funcionários indisponível');
+ const people=source.employees.filter(e=>e.status==='Ativo');
+ return source.teams.map(t=>({name:String(t.name||'').trim(),lead:String(t.lead||t.fiscal||t.supervisor||'Não informado'),people:people.filter(e=>String(e.teamId)===String(t.id)).sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR')).map(e=>({name:String(e.name||''),role:String(e.role||'')}))})).filter(g=>g.name);
 }
 function fill(doc,group,start){
  const a=col(start),b=col(start+1),c=col(start+2);
@@ -50,12 +50,12 @@ function download(blob){
  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='MURB_EQUIPES_'+new Date().toISOString().slice(0,10)+'.xlsx';a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 let running=false;
-window.murbExportEmployeesByTeamExcelOfficial=async function(){
+window.murbExportEmployeesByTeamExcelOfficial=async function(source){
  if(running)return;
  running=true;
  try{
   if(typeof JSZip==='undefined')throw Error('Biblioteca de arquivos Excel não carregada');
-  const groups=readGroups(),lookup=new Map(groups.map(g=>[normalized(g.name),g]));
+  const groups=readGroups(source),lookup=new Map(groups.map(g=>[normalized(g.name),g]));
   const extra=groups.filter(g=>!names.some(n=>normalized(n)===normalized(g.name)));
   const ordered=names.map(n=>lookup.get(normalized(n))||{name:n,lead:'Não informado',people:[]});
   const binary=atob(window.MURB_EXCEL_TEMPLATE_B64);const bytes=new Uint8Array(binary.length);
@@ -143,7 +143,7 @@ window.murbExportEmployeesByTeamExcelOfficial=async function(){
     zip.file(generalPath,new XMLSerializer().serializeToString(general));
   }
   const result=await zip.generateAsync({type:'blob',compression:'DEFLATE',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  if(result.size<10000)throw Error('Arquivo Excel gerado incompleto');
+  if(!result.size)throw Error('Arquivo Excel gerado incompleto');
   download(result);
   if(typeof toast==='function')toast('Planilha oficial Excel gerada: '+(15+extra.length)+' abas.');
  }catch(err){console.error('MURB exportação Excel oficial:',err);alert('Falha ao baixar Excel oficial: '+err.message);}
