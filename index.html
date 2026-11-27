@@ -5487,7 +5487,7 @@ body.murb-x-on:not(.murb-x-home) #murb-x-back {display:block}
  'use strict';
  // Enterprise usa a mesma central no desktop e no celular.
  var groups=[
-  {id:'operacao',name:'OPERAÇÃO',items:[['dashboard','Painel operacional','▦','Visão geral e acompanhamento'],['murbBI','Inteligência operacional','▥','Indicadores e relatórios executivos'],['dailyProgramming','Programação diária','▤','Fiscal · Local · Bairro · Efetivo · Faltas · Operações'],['teams','Equipes','♙','Cadastro e composição'],['absences','Controle de faltas','✓','Registros e presença'],['lunchProgramming','Programação de almoço','◷','Organização de turnos'],['movements','Movimentações','⇄','Transferências e histórico']]},
+  {id:'operacao',name:'OPERAÇÃO',items:[['dashboard','Painel operacional','▦','Visão geral e acompanhamento'],['dailyProgramming','Programação diária','▤','Fiscal · Local · Bairro · Efetivo · Faltas · Operações'],['teams','Equipes','♙','Cadastro e composição'],['absences','Controle de faltas','✓','Registros e presença'],['lunchProgramming','Programação de almoço','◷','Organização de turnos'],['movements','Movimentações','⇄','Transferências e histórico'],['murbBI','Inteligência operacional','▥','Indicadores e relatórios executivos']]},
   {id:'pessoas',name:'PESSOAS',items:[['employees','Funcionários','♙','Cadastro e efetivo geral'],['employeeHistory','Dossiê funcional','▤','Consulta e histórico'],['afastados','Afastados','◌','Controle funcional'],['sumidos','Sumidos','◎','Controle funcional'],['desligados','Desligados','⊗','Histórico de desligamento'],['vacations','Férias','☼','Períodos de férias'],['transferidos','Transferidos','⇄','Controle de transferências']]},
   {id:'gestao',name:'GESTÃO',items:[['orders','Pedidos','▣','Solicitações e entregas'],['sacks','Controle de sacos','▧','Pedidos e distribuição'],['materials','Materiais por equipe','▦','Controle de materiais']]},
   {id:'documentos',name:'DOCUMENTOS',items:[['pointTemplates','Folhas de ponto','▤','Modelos e impressão'],['murbFunctions','Funções e modelos','▣','Modelos funcionais']]},
@@ -7348,3 +7348,14 @@ body.murb-x-on #murb-x-connect-menu #murb-connect-marco-feedback{order:7}
 <script id="murb-offline-pro-status">
 (function(){let timer;function check(){const menu=document.getElementById('murb-x-connect-menu');if(!menu)return;let el=document.getElementById('murb-offline-ready');if(!el){el=document.createElement('div');el.id='murb-offline-ready';el.setAttribute('role','status');menu.appendChild(el);}el.dataset.ready='false';el.textContent='Offline: preparação ainda não confirmada';const worker=navigator.serviceWorker?.controller;if(!worker)return;const ch=new MessageChannel();clearTimeout(timer);timer=setTimeout(()=>ch.port1.close(),4000);ch.port1.onmessage=e=>{clearTimeout(timer);ch.port1.close();if(e.data?.ready){el.dataset.ready='true';el.textContent=navigator.onLine?'Arquivos locais verificados · offline preparado':'Offline · arquivos locais disponíveis; envio aguardando rede';}};worker.postMessage({type:'MURB_OFFLINE_CHECK'},[ch.port2]);}function init(){check();setInterval(check,15000);window.addEventListener('online',check);window.addEventListener('offline',check);navigator.serviceWorker?.addEventListener('controllerchange',check);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();})();
 </script>
+
+<style id="murb-desktop-live-spacing-final">
+@media screen and (min-width:900px){
+ body.murb-x-on #murb-x-top #mnBell{margin-inline:24px!important;flex-shrink:0!important}
+ body.murb-x-on #murb-x-home .murb-x-feature.murb-live-status{width:100%!important;max-width:none!important;min-height:250px!important;padding:24px!important;gap:16px!important;box-sizing:border-box!important}
+ body.murb-x-on #murb-x-home .ml-group{gap:16px!important;padding-right:16px!important}
+ body.murb-x-on #murb-x-home .ml-card{width:260px!important;min-width:260px!important;flex:0 0 260px!important;min-height:150px!important;padding:18px!important}
+ body.murb-x-on #murb-x-home .ml-local{font-size:14px!important;line-height:1.4!important}
+ body.murb-x-on #murb-x-home .ml-bairro{font-size:12px!important;line-height:1.4!important}
+}
+</style>
