@@ -159,7 +159,7 @@ function murbPayloadEqual(remote,local){
  // Compare operational state only. A backup includes timestamps and ownership
  // metadata that do not represent changes to the operational records.
  const keys=Object.keys(local).filter(k=>!['backupCreatedAt','backupVersion','backupOwner','leader','leaderId','leaderName','encarregado','encarregadoPrincipal'].includes(k));
- return keys.every(k=>JSON.stringify(remote[k])===JSON.stringify(local[k]));
+ return keys.every(k=>JSON.stringify(remote[k])===JSON.stringify(local[k])) && JSON.stringify(remote.serviceHistory||[])===JSON.stringify(local.serviceHistory||[]);
 }
 function murbConfirmSynced(uid,filename,pending){
  localStorage.setItem(AUTO_FILE_KEY,filename);
@@ -253,6 +253,7 @@ async function murbAutoPull(){
   const old=localStorage.getItem(KEY);
   if(old)localStorage.setItem('murb_auto_rollback_v35',old);
   const next={...data};
+  if(Array.isArray(remote.serviceHistory))next.serviceHistory=remote.serviceHistory;
   for(const k of Object.keys(data))if(Object.prototype.hasOwnProperty.call(remote,k))next[k]=remote[k];
   localStorage.setItem(KEY,JSON.stringify(next));
   data=next;
